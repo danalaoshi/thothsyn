@@ -1,0 +1,25 @@
+{
+  "name": "thothsyn-extension",
+  "private": true,
+  "version": "0.1.10",
+  "type": "module",
+  "description": "Thothsyn — 本地优先的超级书签（Chrome 版）",
+  "scripts": {
+    "predev": "node scripts/sync-readme.mjs && node scripts/sync-i18n.mjs",
+    "dev": "wxt",
+    "prebuild": "node scripts/sync-readme.mjs && node scripts/sync-i18n.mjs",
+    "build": "wxt build",
+    "prezip": "node scripts/sync-readme.mjs && node scripts/sync-i18n.mjs",
+    "zip": "wxt zip",
+    "typecheck": "tsc --noEmit",
+    "icons": "python3 scripts/gen-icons.py"
+  },
+  "dependencies": {
+    "dexie": "^4.0.8"
+  },
+  "devDependencies": {
+    "@types/chrome": "^0.0.270",
+    "typescript": "^5.6.3",
+    "wxt": "^0.21.5"
+  }
+}

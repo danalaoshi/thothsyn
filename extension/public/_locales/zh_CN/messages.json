@@ -1,0 +1,452 @@
+{
+  "extName": {
+    "message": "Thothsyn 超级书签"
+  },
+  "extDescription": {
+    "message": "本地优先的网页收藏：整页/部分保存、分类查找、快速预览"
+  },
+  "actionTitle": {
+    "message": "Thothsyn — 点击保存整页，右键更多操作"
+  },
+  "menuSaveFull": {
+    "message": "保存整页"
+  },
+  "menuSavePartial": {
+    "message": "部分保存（框选）"
+  },
+  "menuOpenLibrary": {
+    "message": "打开收藏库"
+  },
+  "untitled": {
+    "message": "未命名"
+  },
+  "partialSource": {
+    "message": "来源："
+  },
+  "partialBy": {
+    "message": "Thothsyn 部分保存"
+  },
+  "selectTip": {
+    "message": "悬停高亮 · 单击选中 · 拖拽框选 · Esc 退出"
+  },
+  "selectedCount": {
+    "message": "已选 $1 个"
+  },
+  "saveSelection": {
+    "message": "保存选中"
+  },
+  "cancel": {
+    "message": "取消"
+  },
+  "pin": {
+    "message": "固定"
+  },
+  "unpin": {
+    "message": "取消固定"
+  },
+  "pinTitle": {
+    "message": "固定为常驻"
+  },
+  "closeTitle": {
+    "message": "强制关闭（不再自动出现）"
+  },
+  "closeAria": {
+    "message": "强制关闭收藏库"
+  },
+  "edgeTitle": {
+    "message": "展开收藏库"
+  },
+  "resizeTitle": {
+    "message": "拖动调整宽度"
+  },
+  "libraryIframeTitle": {
+    "message": "Thothsyn 收藏库"
+  },
+  "previewBadge": {
+    "message": "本地存档 · 离线"
+  },
+  "previewCloseTitle": {
+    "message": "关闭预览"
+  },
+  "savedContentTitle": {
+    "message": "保存的内容"
+  },
+  "settings": {
+    "message": "设置"
+  },
+  "settingsEntryTitle": {
+    "message": "打开设置（管理文件夹、导入、偏好）"
+  },
+  "settingsEntryAria": {
+    "message": "打开设置"
+  },
+  "allCaptures": {
+    "message": "全部收藏"
+  },
+  "businessFolders": {
+    "message": "业务文件夹"
+  },
+  "tagFolders": {
+    "message": "标签文件夹"
+  },
+  "folderUncategorized": {
+    "message": "未分类"
+  },
+  "folderArchive": {
+    "message": "归档"
+  },
+  "folderWaiting": {
+    "message": "等待阅读"
+  },
+  "searchPlaceholder": {
+    "message": "搜索收藏"
+  },
+  "searchAria": {
+    "message": "搜索收藏：标题、网址或正文"
+  },
+  "noTags": {
+    "message": "暂无标签文件夹（在「设置」中新建）"
+  },
+  "noMatches": {
+    "message": "没有匹配的收藏"
+  },
+  "noMatchesHint": {
+    "message": "换个关键词，或清空搜索框。"
+  },
+  "emptyLibrary": {
+    "message": "这里还没有收藏。"
+  },
+  "emptyLibraryHint": {
+    "message": "点击工具栏图标保存整页，或右键选择「部分保存」。"
+  },
+  "dragTitle": {
+    "message": "拖到左侧文件夹分类"
+  },
+  "badgePartial": {
+    "message": "片段"
+  },
+  "deleteTitle": {
+    "message": "删除这条收藏"
+  },
+  "deleteAria": {
+    "message": "删除收藏 $1"
+  },
+  "previewFailed": {
+    "message": "本地预览生成失败，请重新悬停一次。"
+  },
+  "confirmDelete": {
+    "message": "删除「$1」？"
+  },
+  "delete": {
+    "message": "删除"
+  },
+  "filterFallback": {
+    "message": "收藏"
+  },
+  "treeResizeTitle": {
+    "message": "拖动调整侧边栏宽度"
+  },
+  "optionsTitle": {
+    "message": "Thothsyn 设置"
+  },
+  "optionsSub": {
+    "message": "管理本地收藏的分类文件夹、导入与偏好。改动会即时同步到收藏库；登录与云同步为 v2 功能，当前为占位。"
+  },
+  "manageBusiness": {
+    "message": "管理业务文件夹"
+  },
+  "businessHint": {
+    "message": "单归属：每个收藏只属于一个业务文件夹（拖入=移动）"
+  },
+  "addBusiness": {
+    "message": "+ 新建业务文件夹"
+  },
+  "manageTags": {
+    "message": "管理标签文件夹"
+  },
+  "tagHint": {
+    "message": "多标签：收藏可同时属于多个标签文件夹（拖入=追加标签）"
+  },
+  "addTag": {
+    "message": "+ 新建标签文件夹"
+  },
+  "importTitle": {
+    "message": "导入收藏"
+  },
+  "importHint": {
+    "message": "从书签栏或书签 HTML 文件导入，记录与原有收藏独立"
+  },
+  "importBar": {
+    "message": "从书签栏导入"
+  },
+  "importFile": {
+    "message": "从 HTML 文件导入"
+  },
+  "importMapHint": {
+    "message": "顶层「书签栏」归入业务文件夹，子文件夹作为标签"
+  },
+  "prefsTitle": {
+    "message": "偏好"
+  },
+  "prefsHint": {
+    "message": "即时生效，无需重启扩展"
+  },
+  "deleteConfirmLabel": {
+    "message": "删除收藏时二次确认"
+  },
+  "deleteConfirmSub": {
+    "message": "默认关闭：点每条收藏右侧的 × 直接删除。开启后先出现行内确认条。"
+  },
+  "deleteConfirmAria": {
+    "message": "删除收藏时是否需要二次确认"
+  },
+  "iconBlinkLabel": {
+    "message": "工具栏图标闪烁"
+  },
+  "iconBlinkSub": {
+    "message": "同一蓝色相的两帧图标交替切换；关闭后回到静态图标。尊重系统「减少动态效果」。"
+  },
+  "iconBlinkAria": {
+    "message": "工具栏图标是否闪烁"
+  },
+  "assetsTitle": {
+    "message": "离线资源"
+  },
+  "assetsHint": {
+    "message": "保存网页时后台下载图片 / CSS / 字体，脚本仅存档不执行"
+  },
+  "loading": {
+    "message": "读取中…"
+  },
+  "clearAssets": {
+    "message": "清空离线资源"
+  },
+  "clearAssetsHint": {
+    "message": "只删缓存，收藏与分类不受影响"
+  },
+  "loginTitle": {
+    "message": "登录"
+  },
+  "loginLabel": {
+    "message": "账号登录与云同步"
+  },
+  "loginSub": {
+    "message": "邮箱注册 / 登录，收藏跨设备同步。属于 v2 规划，当前版本仅本地保存。"
+  },
+  "v2Disabled": {
+    "message": "v2 未启用"
+  },
+  "stateDeleteOn": {
+    "message": "当前生效：需要二次确认（到收藏库点 × 验证）"
+  },
+  "stateDeleteOff": {
+    "message": "当前生效：直接删除（到收藏库点 × 验证）"
+  },
+  "stateBlinkOn": {
+    "message": "当前生效：图标闪烁开启"
+  },
+  "stateBlinkOff": {
+    "message": "当前生效：静态图标"
+  },
+  "importingBar": {
+    "message": "正在从书签栏导入…"
+  },
+  "importDoneBar": {
+    "message": "导入完成：新增 $1 条收藏，顶层书签栏已归入业务文件夹"
+  },
+  "importEmptyBar": {
+    "message": "导入完成：书签栏里没有可导入的链接"
+  },
+  "importFailed": {
+    "message": "导入失败：$1"
+  },
+  "parsingFile": {
+    "message": "正在解析 $1 …"
+  },
+  "importDoneFile": {
+    "message": "导入完成：从 $1 新增 $2 条收藏"
+  },
+  "importEmptyFile": {
+    "message": "导入完成：$1 里没有可导入的链接"
+  },
+  "downloading": {
+    "message": "下载中 $1"
+  },
+  "failedCount": {
+    "message": "失败 $1"
+  },
+  "awaiting": {
+    "message": "待放行 $1"
+  },
+  "assetsCount": {
+    "message": "份已离线 ·"
+  },
+  "assetsBreakdown": {
+    "message": "图片 $1 · 样式 $2 · 字体 $3 · 脚本存档 $4（不执行）"
+  },
+  "assetsDedupe": {
+    "message": "按原始 URL 全局去重，同一份资源只存一份"
+  },
+  "clearAssetsConfirm": {
+    "message": "清空全部离线资源？收藏与分类不受影响。"
+  },
+  "clear": {
+    "message": "清空"
+  },
+  "noFolders": {
+    "message": "（暂无，点击下方新建）"
+  },
+  "rename": {
+    "message": "重命名"
+  },
+  "folderNameBusiness": {
+    "message": "业务文件夹名称"
+  },
+  "folderNameTag": {
+    "message": "标签文件夹名称"
+  },
+  "confirm": {
+    "message": "确定"
+  },
+  "save": {
+    "message": "保存"
+  },
+  "deleteFolderConfirm": {
+    "message": "删除「$1」？收藏不会被删除，只移除该分类。"
+  },
+  "syncClosing": {
+    "message": "已同步 · 正在关闭"
+  },
+  "done": {
+    "message": "完成"
+  },
+  "doneTitle": {
+    "message": "同步并关闭设置页"
+  },
+  "readerLoading": {
+    "message": "加载中…"
+  },
+  "readerOpenOrigin": {
+    "message": "打开原网页 ↗"
+  },
+  "readerNotFound": {
+    "message": "未找到这条收藏"
+  },
+  "readerPageTitle": {
+    "message": "Thothsyn 阅读"
+  },
+  "standaloneHint": {
+    "message": "侧栏模式 · 其他网页上仍可使用左侧抽屉"
+  },
+  "accountSyncTitle": {
+    "message": "账号与云同步"
+  },
+  "accountSyncHint": {
+    "message": "邮箱登录后，收藏可跨设备同步；未验证邮箱不允许同步"
+  },
+  "accountLoading": {
+    "message": "读取账号状态…"
+  },
+  "serverUrl": {
+    "message": "服务器地址"
+  },
+  "email": {
+    "message": "邮箱"
+  },
+  "password": {
+    "message": "密码"
+  },
+  "register": {
+    "message": "注册新账号"
+  },
+  "forgotPassword": {
+    "message": "忘记密码"
+  },
+  "signupHint": {
+    "message": "注册后需要到邮箱点确认链接；未验证邮箱的账号不允许同步。"
+  },
+  "syncMode": {
+    "message": "同步模式"
+  },
+  "dailyAutoSync": {
+    "message": "每日自动同步"
+  },
+  "dailyAutoSyncHint": {
+    "message": "每天一次，浏览器启动后自动补跑"
+  },
+  "syncNow": {
+    "message": "立即同步"
+  },
+  "manageOnline": {
+    "message": "管理线上内容"
+  },
+  "signOut": {
+    "message": "退出登录"
+  },
+  "unverifiedBlocked": {
+    "message": "邮箱未验证：同步已禁用。请到注册邮箱点确认链接后再回来。"
+  },
+  "lastSync": {
+    "message": "上次同步："
+  },
+  "levelUnverified": {
+    "message": "未验证邮箱"
+  },
+  "levelFormal": {
+    "message": "正式用户"
+  },
+  "levelPaid": {
+    "message": "付费用户"
+  },
+  "levelSuperuser": {
+    "message": "超级用户"
+  },
+  "modeBoth": {
+    "message": "双向：各取增量，冲突取更新时间较新的一方"
+  },
+  "modePush": {
+    "message": "仅上传：本地 → 云端"
+  },
+  "modePull": {
+    "message": "仅下载：云端 → 本地"
+  },
+  "needEmailPass": {
+    "message": "请填写邮箱与密码"
+  },
+  "signingIn": {
+    "message": "正在登录…"
+  },
+  "signedIn": {
+    "message": "已登录：$1（$2）"
+  },
+  "signingUp": {
+    "message": "正在注册…"
+  },
+  "confirmEmailSent": {
+    "message": "已发送确认邮件：请到邮箱点确认链接，然后回来登录"
+  },
+  "registeredSignedIn": {
+    "message": "注册成功，已自动登录"
+  },
+  "needEmailFirst": {
+    "message": "先填写邮箱，再点忘记密码"
+  },
+  "resetMailSent": {
+    "message": "重置密码邮件已发送（本地测试可在 Mailpit 54324 查看）"
+  },
+  "syncing": {
+    "message": "正在同步…"
+  },
+  "syncDone": {
+    "message": "同步完成：上传 $1 条、下载 $2 条"
+  },
+  "syncConflictNote": {
+    "message": "，$1 条以云端为准"
+  },
+  "signedOut": {
+    "message": "已退出登录，本地收藏不受影响"
+  },
+  "never": {
+    "message": "从未"
+  }
+}

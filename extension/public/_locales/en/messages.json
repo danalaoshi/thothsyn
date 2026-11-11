@@ -1,0 +1,452 @@
+{
+  "extName": {
+    "message": "Thothsyn Super Bookmarks"
+  },
+  "extDescription": {
+    "message": "Local-first web captures: save full pages or selections, organize, and preview offline"
+  },
+  "actionTitle": {
+    "message": "Thothsyn — click to save the page, right-click for more"
+  },
+  "menuSaveFull": {
+    "message": "Save full page"
+  },
+  "menuSavePartial": {
+    "message": "Save a selection (drag)"
+  },
+  "menuOpenLibrary": {
+    "message": "Open library"
+  },
+  "untitled": {
+    "message": "Untitled"
+  },
+  "partialSource": {
+    "message": "Source: "
+  },
+  "partialBy": {
+    "message": "Thothsyn partial save"
+  },
+  "selectTip": {
+    "message": "Hover to highlight · click to select · drag to box-select · Esc to exit"
+  },
+  "selectedCount": {
+    "message": "$1 selected"
+  },
+  "saveSelection": {
+    "message": "Save selection"
+  },
+  "cancel": {
+    "message": "Cancel"
+  },
+  "pin": {
+    "message": "Pin"
+  },
+  "unpin": {
+    "message": "Unpin"
+  },
+  "pinTitle": {
+    "message": "Keep the drawer open"
+  },
+  "closeTitle": {
+    "message": "Close for good (stop auto-showing)"
+  },
+  "closeAria": {
+    "message": "Close the library for good"
+  },
+  "edgeTitle": {
+    "message": "Expand the library"
+  },
+  "resizeTitle": {
+    "message": "Drag to resize"
+  },
+  "libraryIframeTitle": {
+    "message": "Thothsyn Library"
+  },
+  "previewBadge": {
+    "message": "Local archive · Offline"
+  },
+  "previewCloseTitle": {
+    "message": "Close preview"
+  },
+  "savedContentTitle": {
+    "message": "Saved content"
+  },
+  "settings": {
+    "message": "Settings"
+  },
+  "settingsEntryTitle": {
+    "message": "Open settings (folders, import, preferences)"
+  },
+  "settingsEntryAria": {
+    "message": "Open settings"
+  },
+  "allCaptures": {
+    "message": "All captures"
+  },
+  "businessFolders": {
+    "message": "Business folders"
+  },
+  "tagFolders": {
+    "message": "Tag folders"
+  },
+  "folderUncategorized": {
+    "message": "Uncategorized"
+  },
+  "folderArchive": {
+    "message": "Archive"
+  },
+  "folderWaiting": {
+    "message": "To read"
+  },
+  "searchPlaceholder": {
+    "message": "Search captures"
+  },
+  "searchAria": {
+    "message": "Search captures: title, URL, or text"
+  },
+  "noTags": {
+    "message": "No tag folders yet (create one in Settings)"
+  },
+  "noMatches": {
+    "message": "No matching captures"
+  },
+  "noMatchesHint": {
+    "message": "Try another keyword, or clear the search box."
+  },
+  "emptyLibrary": {
+    "message": "Nothing saved yet."
+  },
+  "emptyLibraryHint": {
+    "message": "Click the toolbar icon to save a page, or right-click and choose Save a selection."
+  },
+  "dragTitle": {
+    "message": "Drag onto a folder on the left"
+  },
+  "badgePartial": {
+    "message": "Fragment"
+  },
+  "deleteTitle": {
+    "message": "Delete this capture"
+  },
+  "deleteAria": {
+    "message": "Delete capture $1"
+  },
+  "previewFailed": {
+    "message": "Could not build the local preview. Hover again to retry."
+  },
+  "confirmDelete": {
+    "message": "Delete \"$1\"?"
+  },
+  "delete": {
+    "message": "Delete"
+  },
+  "filterFallback": {
+    "message": "Captures"
+  },
+  "treeResizeTitle": {
+    "message": "Drag to resize the sidebar"
+  },
+  "optionsTitle": {
+    "message": "Thothsyn Settings"
+  },
+  "optionsSub": {
+    "message": "Manage folders, imports, and preferences. Changes sync to the library immediately; sign-in and cloud sync are v2 placeholders."
+  },
+  "manageBusiness": {
+    "message": "Business folders"
+  },
+  "businessHint": {
+    "message": "Single owner: each capture belongs to one business folder (drop = move)"
+  },
+  "addBusiness": {
+    "message": "+ New business folder"
+  },
+  "manageTags": {
+    "message": "Tag folders"
+  },
+  "tagHint": {
+    "message": "Multiple tags: a capture can have several tag folders (drop = add tag)"
+  },
+  "addTag": {
+    "message": "+ New tag folder"
+  },
+  "importTitle": {
+    "message": "Import captures"
+  },
+  "importHint": {
+    "message": "Import from the bookmarks bar or a bookmarks HTML file; imported records are independent"
+  },
+  "importBar": {
+    "message": "Import from bookmarks bar"
+  },
+  "importFile": {
+    "message": "Import from HTML file"
+  },
+  "importMapHint": {
+    "message": "Top-level bookmarks folders become business folders; subfolders become tags"
+  },
+  "prefsTitle": {
+    "message": "Preferences"
+  },
+  "prefsHint": {
+    "message": "Applied immediately; no extension restart needed"
+  },
+  "deleteConfirmLabel": {
+    "message": "Confirm before deleting captures"
+  },
+  "deleteConfirmSub": {
+    "message": "Off by default: the × on each row deletes immediately. When on, an inline confirmation appears."
+  },
+  "deleteConfirmAria": {
+    "message": "Require confirmation when deleting captures"
+  },
+  "iconBlinkLabel": {
+    "message": "Blinking toolbar icon"
+  },
+  "iconBlinkSub": {
+    "message": "Alternates two icon frames; turning it off restores a static icon. Honors the system reduced-motion setting."
+  },
+  "iconBlinkAria": {
+    "message": "Blink the toolbar icon"
+  },
+  "assetsTitle": {
+    "message": "Offline assets"
+  },
+  "assetsHint": {
+    "message": "Downloads images, CSS, and fonts in the background; scripts are archived only, never executed"
+  },
+  "loading": {
+    "message": "Loading…"
+  },
+  "clearAssets": {
+    "message": "Clear offline assets"
+  },
+  "clearAssetsHint": {
+    "message": "Only clears the cache; captures and folders are untouched"
+  },
+  "loginTitle": {
+    "message": "Sign in"
+  },
+  "loginLabel": {
+    "message": "Account sign-in and cloud sync"
+  },
+  "loginSub": {
+    "message": "Email sign-up / sign-in with cross-device sync. Planned for v2; this version is local-only."
+  },
+  "v2Disabled": {
+    "message": "v2 · Not enabled"
+  },
+  "stateDeleteOn": {
+    "message": "Active: confirmation required (try × in the library)"
+  },
+  "stateDeleteOff": {
+    "message": "Active: delete immediately (try × in the library)"
+  },
+  "stateBlinkOn": {
+    "message": "Active: icon blinking on"
+  },
+  "stateBlinkOff": {
+    "message": "Active: static icon"
+  },
+  "importingBar": {
+    "message": "Importing from the bookmarks bar…"
+  },
+  "importDoneBar": {
+    "message": "Import complete: $1 captures added; top-level bookmarks folders mapped to business folders"
+  },
+  "importEmptyBar": {
+    "message": "Import complete: no links found on the bookmarks bar"
+  },
+  "importFailed": {
+    "message": "Import failed: $1"
+  },
+  "parsingFile": {
+    "message": "Parsing $1 …"
+  },
+  "importDoneFile": {
+    "message": "Import complete: $2 captures added from $1"
+  },
+  "importEmptyFile": {
+    "message": "Import complete: no links found in $1"
+  },
+  "downloading": {
+    "message": "Downloading $1"
+  },
+  "failedCount": {
+    "message": "Failed $1"
+  },
+  "awaiting": {
+    "message": "Awaiting $1"
+  },
+  "assetsCount": {
+    "message": "archived ·"
+  },
+  "assetsBreakdown": {
+    "message": "Images $1 · Styles $2 · Fonts $3 · Scripts archived $4 (never run)"
+  },
+  "assetsDedupe": {
+    "message": "Deduplicated by original URL; each asset is stored once"
+  },
+  "clearAssetsConfirm": {
+    "message": "Clear all offline assets? Captures and folders are untouched."
+  },
+  "clear": {
+    "message": "Clear"
+  },
+  "noFolders": {
+    "message": "(None yet — create one below)"
+  },
+  "rename": {
+    "message": "Rename"
+  },
+  "folderNameBusiness": {
+    "message": "Business folder name"
+  },
+  "folderNameTag": {
+    "message": "Tag folder name"
+  },
+  "confirm": {
+    "message": "OK"
+  },
+  "save": {
+    "message": "Save"
+  },
+  "deleteFolderConfirm": {
+    "message": "Delete \"$1\"? Captures are kept; only the folder is removed."
+  },
+  "syncClosing": {
+    "message": "Synced · Closing"
+  },
+  "done": {
+    "message": "Done"
+  },
+  "doneTitle": {
+    "message": "Sync and close settings"
+  },
+  "readerLoading": {
+    "message": "Loading…"
+  },
+  "readerOpenOrigin": {
+    "message": "Open original page ↗"
+  },
+  "readerNotFound": {
+    "message": "Capture not found"
+  },
+  "readerPageTitle": {
+    "message": "Thothsyn Reader"
+  },
+  "standaloneHint": {
+    "message": "Sidebar mode · the left drawer still works on other pages"
+  },
+  "accountSyncTitle": {
+    "message": "Account & Cloud Sync"
+  },
+  "accountSyncHint": {
+    "message": "Sign in with email to sync captures across devices. Unverified emails cannot sync."
+  },
+  "accountLoading": {
+    "message": "Reading account status…"
+  },
+  "serverUrl": {
+    "message": "Server URL"
+  },
+  "email": {
+    "message": "Email"
+  },
+  "password": {
+    "message": "Password"
+  },
+  "register": {
+    "message": "Create account"
+  },
+  "forgotPassword": {
+    "message": "Forgot password"
+  },
+  "signupHint": {
+    "message": "After signing up, confirm via the link in your inbox. Unverified accounts cannot sync."
+  },
+  "syncMode": {
+    "message": "Sync mode"
+  },
+  "dailyAutoSync": {
+    "message": "Daily auto-sync"
+  },
+  "dailyAutoSyncHint": {
+    "message": "Once a day; catches up when the browser starts"
+  },
+  "syncNow": {
+    "message": "Sync now"
+  },
+  "manageOnline": {
+    "message": "Manage online content"
+  },
+  "signOut": {
+    "message": "Sign out"
+  },
+  "unverifiedBlocked": {
+    "message": "Email not verified: sync is disabled. Confirm via the link in your inbox, then come back."
+  },
+  "lastSync": {
+    "message": "Last sync: "
+  },
+  "levelUnverified": {
+    "message": "Unverified"
+  },
+  "levelFormal": {
+    "message": "Standard"
+  },
+  "levelPaid": {
+    "message": "Paid"
+  },
+  "levelSuperuser": {
+    "message": "Superuser"
+  },
+  "modeBoth": {
+    "message": "Two-way: exchange deltas, newer update wins"
+  },
+  "modePush": {
+    "message": "Upload only: local → cloud"
+  },
+  "modePull": {
+    "message": "Download only: cloud → local"
+  },
+  "needEmailPass": {
+    "message": "Please enter email and password"
+  },
+  "signingIn": {
+    "message": "Signing in…"
+  },
+  "signedIn": {
+    "message": "Signed in: $1 ($2)"
+  },
+  "signingUp": {
+    "message": "Creating account…"
+  },
+  "confirmEmailSent": {
+    "message": "Confirmation email sent. Click the link in your inbox, then sign in here."
+  },
+  "registeredSignedIn": {
+    "message": "Account created and signed in"
+  },
+  "needEmailFirst": {
+    "message": "Enter your email first"
+  },
+  "resetMailSent": {
+    "message": "Password reset email sent (open Mailpit at :54324 for local testing)"
+  },
+  "syncing": {
+    "message": "Syncing…"
+  },
+  "syncDone": {
+    "message": "Sync complete: $1 uploaded, $2 downloaded"
+  },
+  "syncConflictNote": {
+    "message": ", $1 taken from cloud"
+  },
+  "signedOut": {
+    "message": "Signed out. Local captures are untouched."
+  },
+  "never": {
+    "message": "Never"
+  }
+}

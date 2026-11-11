@@ -1,0 +1,21 @@
+node_modules/
+.output/
+.wxt/
+dist/
+coverage/
+playwright-report/
+test-results/
+e2e/artifacts/
+*.thothsyn.zip
+*.zip
+.env
+.env.*
+!.env.example
+.DS_Store
+.idea/
+
+# 本地 Agent / 编辑器元数据（含个人笔记，不入库）
+.codebuddy/
+.workbuddy/
+.zcode/
+.zcodeignore

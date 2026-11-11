@@ -1,0 +1,20 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="color-scheme" content="dark" />
+    <title>Thothsyn 设置</title>
+  </head>
+  <body>
+    <div id="app"></div>
+    <!-- 独立于 #app：render() 重建内容时不会丢失按钮与状态提示 -->
+    <div class="dock">
+      <span id="sync-status" class="sync-status" role="status" aria-live="polite"></span>
+      <button id="done-btn" class="btn primary done" type="button" title="同步并关闭设置页">完成</button>
+    </div>
+    <!-- 导入完成反馈：独立于 #app，render() 重建内容时不会被抹掉 -->
+    <div id="toast" class="toast" role="status" aria-live="polite"></div>
+    <script type="module" src="./main.ts"></script>
+  </body>
+</html>

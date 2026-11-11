@@ -1,0 +1,91 @@
+/* Thothsyn 阅读页 — 与收藏库共用科技风设计令牌 */
+:root {
+  --ground: #080c14;
+  --s1: #0e1521;
+  --s2: #141d2b;
+  --line: rgba(148, 180, 220, 0.14);
+  --ink: #e6eefb;
+  --ink-2: #9fb0c9;
+  --accent: #38bdf8;
+  --accent-soft: rgba(56, 189, 248, 0.12);
+  --accent-line: rgba(56, 189, 248, 0.38);
+  --mono: ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas,
+    'Liberation Mono', monospace;
+  --ui: system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Microsoft YaHei',
+    sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+}
+html,
+body {
+  margin: 0;
+  height: 100%;
+  font: 14px/1.5 var(--ui);
+  color: var(--ink);
+  background: var(--s1);
+}
+#app {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+header {
+  height: 44px;
+  flex: 0 0 44px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 0 14px;
+  background: var(--ground);
+  border-bottom: 1px solid var(--line);
+  color: var(--ink);
+}
+#title {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font: 12px/1 var(--mono);
+  letter-spacing: 0.04em;
+  color: var(--ink-2);
+}
+#open-origin {
+  border: 1px solid var(--accent-line);
+  border-radius: 6px;
+  padding: 6px 12px;
+  font: 11px/1 var(--ui);
+  cursor: pointer;
+  background: var(--accent-soft);
+  color: var(--accent);
+  transition: background 0.15s ease-out, color 0.15s ease-out;
+}
+#open-origin:hover {
+  background: var(--accent);
+  color: var(--ground);
+}
+#open-origin:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+#open-origin:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+/* 内容区保留网页原本底色：白的是快照内容，不是 UI 面板 */
+#view {
+  flex: 1;
+  width: 100%;
+  border: 0;
+  background: #fff;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    transition-duration: 0.01ms !important;
+  }
+}

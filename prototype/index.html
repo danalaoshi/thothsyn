@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Thothsyn 原型 · v1 Chrome</title>
+<style>
+  :root{
+    --accent:#185FA5; --accent-soft:#E6F1FB; --accent-border:#85B7EB;
+    --text:#1c2024; --text-2:#626a74; --text-3:#9aa1ab;
+    --border:#e4e6ea; --border-2:#cdd1d8;
+    --surface:#ffffff; --surface-2:#f5f6f8;
+    --sidebar:#171b21; --sidebar-2:#22272f;
+    --radius:12px; --radius-sm:8px;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:-apple-system,"Segoe UI",system-ui,"PingFang SC","Microsoft YaHei",sans-serif;
+    background:var(--surface-2);color:var(--text);font-size:13px;line-height:1.6;-webkit-font-smoothing:antialiased}
+  .app{display:flex;min-height:100vh}
+  /* sidebar nav */
+  .nav{width:220px;background:var(--sidebar);color:#cfd4db;flex-shrink:0;padding:18px 12px;display:flex;flex-direction:column;gap:4px}
+  .brand{display:flex;align-items:center;gap:10px;padding:4px 8px 18px}
+  .brand .logo{width:30px;height:30px;border-radius:8px;background:var(--accent-soft);color:var(--accent);
+    display:flex;align-items:center;justify-content:center;font-weight:600;font-size:15px}
+  .brand .name{font-size:14px;font-weight:500;color:#fff}
+  .brand .sub{font-size:11px;color:#7c8390}
+  .nav-label{font-size:11px;color:#6b7280;padding:14px 10px 4px;letter-spacing:.04em}
+  .nav-item{display:flex;align-items:center;gap:9px;padding:9px 10px;border-radius:8px;color:#cfd4db;cursor:pointer;font-size:13px;border:0.5px solid transparent}
+  .nav-item:hover{background:var(--sidebar-2)}
+  .nav-item.active{background:var(--accent);color:#fff;border-color:var(--accent)}
+  .nav-item .dot{width:6px;height:6px;border-radius:50%;background:currentColor;opacity:.6}
+  /* main */
+  .main{flex:1;padding:28px 32px;overflow:auto}
+  .stage{max-width:760px;margin:0 auto}
+  .screen{display:none}
+  .screen.active{display:block}
+  .screen-head{margin-bottom:18px}
+  .screen-head h1{font-size:18px;font-weight:600;color:var(--text)}
+  .screen-head p{font-size:13px;color:var(--text-2);margin-top:4px}
+  .card{border:0.5px solid var(--border);border-radius:var(--radius);background:var(--surface);padding:20px}
+  /* generic */
+  .muted{color:var(--text-3)}
+  .chip{font-size:12px;padding:3px 9px;border-radius:8px;border:0.5px solid var(--border);color:var(--text-2);display:inline-block}
+  .chip.tag{background:var(--accent-soft);color:var(--accent);border-color:var(--accent-border)}
+  .chip.dash{border-style:dashed;color:var(--accent)}
+  .badge{font-size:12px;color:var(--accent);font-weight:500}
+  .btn{border:0.5px solid var(--border-2);border-radius:8px;padding:8px 14px;font-size:13px;background:var(--surface);color:var(--text-2);cursor:pointer}
+  .btn.primary{background:var(--accent);color:#fff;border-color:var(--accent)}
+  .row{display:flex;align-items:center;gap:10px}
+  .between{justify-content:space-between}
+  .node{font-size:13px;padding:6px 8px;border-radius:8px;color:var(--text)}
+  .node:hover{background:var(--surface-2)}
+  .hint{font-size:12px;color:var(--text-2);background:var(--surface-2);border:0.5px solid var(--border);border-radius:8px;padding:9px 12px;line-height:1.5}
+  /* toolbar strip */
+  .bar{display:flex;align-items:center;gap:8px;background:var(--surface-2);border:0.5px solid var(--border);border-radius:8px;padding:8px 12px}
+  .addr{flex:1;background:var(--surface);border:0.5px solid var(--border);border-radius:8px;padding:6px 10px;font-size:12px;color:var(--text-2)}
+  .ext{width:30px;height:30px;border-radius:8px;background:var(--accent-soft);color:var(--accent);display:flex;align-items:center;justify-content:center;font-weight:600;border:0.5px solid var(--accent-border)}
+  .menu{border:0.5px solid var(--border);border-radius:10px;padding:6px;width:190px}
+  .menu .mi{font-size:13px;padding:9px 10px;border-radius:8px}
+  .menu .mi.sel{background:var(--accent-soft);color:var(--accent);font-weight:500}
+  .toast{border:0.5px solid var(--border);border-radius:10px;padding:9px 13px;display:inline-flex;align-items:center;gap:8px;background:var(--surface)}
+  .toast .ok{width:8px;height:8px;border-radius:50%;background:#639922}
+  .frame{border:0.5px solid var(--border);border-radius:var(--radius);overflow:hidden;display:flex}
+  .frame .side{width:210px;border-right:0.5px solid var(--border);padding:12px;background:var(--surface-2)}
+  .frame .page{flex:1;padding:16px;position:relative}
+  .list-item{border:0.5px solid var(--border);border-radius:10px;padding:11px 12px;margin-bottom:10px;display:flex;gap:10px;align-items:flex-start}
+  .grip{color:var(--text-3);font-size:13px;cursor:grab}
+  .set-sec{font-size:12px;color:var(--text-3);margin:0 0 8px}
+  .folder-row{border:0.5px solid var(--border);border-radius:10px;padding:10px 12px;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center}
+  .modal{width:440px;margin:0 auto;border:0.5px solid var(--border);border-radius:12px;padding:18px;background:var(--surface)}
+  .opt{display:flex;gap:10px;align-items:flex-start;border:0.5px solid var(--border);border-radius:10px;padding:12px 14px;margin-bottom:10px}
+  .opt.on{border-color:var(--accent-border);background:var(--accent-soft)}
+  .radio{width:14px;height:14px;border-radius:50%;border:0.5px solid var(--border-2);margin-top:2px}
+  .radio.on{background:var(--accent);border-color:var(--accent)}
+  .hl{border:2px solid var(--accent);background:rgba(24,95,165,.08);border-radius:8px;padding:11px 13px;font-size:13px;line-height:1.6;margin-bottom:14px}
+  .confirm{display:flex;align-items:center;justify-content:space-between;background:var(--surface-2);border:0.5px solid var(--border);border-radius:8px;padding:10px 14px}
+  .preview-pop{position:absolute;left:0;top:60px;width:230px;background:var(--surface);border:0.5px solid var(--border-2);border-radius:10px;padding:13px}
+</style>
+</head>
+<body>
+<div class="app">
+  <nav class="nav">
+    <div class="brand">
+      <div class="logo">T</div>
+      <div><div class="name">Thothsyn</div><div class="sub">原型 · v1 Chrome</div></div>
+    </div>
+    <div class="nav-label">界面流程</div>
+    <div class="nav-item active" onclick="show('s1',this)"><span class="dot"></span>工具栏交互</div>
+    <div class="nav-item" onclick="show('s2',this)"><span class="dot"></span>部分保存 · 框选</div>
+    <div class="nav-item" onclick="show('s3',this)"><span class="dot"></span>侧边栏 · 悬停预览</div>
+    <div class="nav-item" onclick="show('s4',this)"><span class="dot"></span>收藏库 · 拖拽分类</div>
+    <div class="nav-item" onclick="show('s5',this)"><span class="dot"></span>设置</div>
+    <div class="nav-item" onclick="show('s6',this)"><span class="dot"></span>导入书签</div>
+  </nav>
+
+  <main class="main">
+    <div class="stage">
+
+      <!-- S1 工具栏交互 -->
+      <section id="s1" class="screen active">
+        <div class="screen-head"><h1>工具栏交互</h1><p>保存入口：单击图标 = 整页保存；右键 = 菜单选「保存整页 / 部分保存」。</p></div>
+        <div class="card row" style="align-items:flex-start;gap:28px;flex-wrap:wrap">
+          <div style="width:300px">
+            <div class="bar">
+              <div class="addr">https://example.com/article</div>
+            </div>
+            <div class="bar" style="margin-top:12px">
+              <span class="muted" style="font-size:12px">扩展栏</span>
+              <div class="ext">T</div>
+              <span style="font-size:12px;color:var(--text-2)">单击 = 保存整页</span>
+            </div>
+          </div>
+          <div class="menu">
+            <div class="mi sel">保存整页</div>
+            <div class="mi">部分保存</div>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:10px">
+            <div class="toast"><span class="ok"></span><span>已保存整页</span></div>
+            <span class="muted" style="font-size:12px;max-width:150px">保存成功后才提示；失败给具体原因</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- S2 部分保存 -->
+      <section id="s2" class="screen">
+        <div class="screen-head"><h1>部分保存 · 框选 DOM</h1><p>选「部分保存」后进入选择态，拖拽框选元素，高亮效果同 DevTools；可多选合并为一条片段。</p></div>
+        <div class="card" style="max-width:560px">
+          <div class="row between" style="margin-bottom:14px">
+            <span class="muted" style="font-size:13px">example.com/article · 选择态</span>
+            <span class="chip tag">选择元素中</span>
+          </div>
+          <div style="font-size:15px;font-weight:500;margin-bottom:6px">文章标题区</div>
+          <div class="muted" style="font-size:13px;margin-bottom:14px">作者 · 2026-11-08</div>
+          <div class="hl">这是被框选的正文段落：松手即高亮，效果等同于 DevTools 的「Select an element in the page to inspect it」。可继续拖选其它块，统一归入一条片段。</div>
+          <div class="muted" style="font-size:13px;margin-bottom:16px">未被选中的其余内容保持原样，选择结束或取消后页面事件恢复正常。</div>
+          <div class="confirm">
+            <span>已选中 1 个元素</span>
+            <span class="badge">保存选中内容 →</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- S3 侧边栏 + 悬停预览 -->
+      <section id="s3" class="screen">
+        <div class="screen-head"><h1>侧边栏 · 悬停快速预览</h1><p>侧边栏平时最小化，点击展开；列表按收藏时间、只显标题（不显链接）。悬停标题弹快速浏览窗；点击标题开新标签页。</p></div>
+        <div class="card" style="padding:0">
+          <div class="frame">
+            <div class="side">
+              <div class="row between" style="margin-bottom:12px"><span style="font-size:13px;font-weight:500">我的收藏</span><span class="muted" style="font-size:12px">12</span></div>
+              <div class="node">西藏旅游路线详解</div>
+              <div class="node" style="background:var(--surface);border:0.5px solid var(--border-2)">Chrome 扩展开发指南</div>
+              <div class="node">ClickHouse 物化视图笔记</div>
+              <div class="node">本地优先架构随笔</div>
+            </div>
+            <div class="page">
+              <div class="preview-pop">
+                <div style="font-size:13px;font-weight:500;margin-bottom:6px">Chrome 扩展开发指南</div>
+                <div class="muted" style="font-size:12px;margin-bottom:9px">保存于 11-08 21:30 · 等待阅读</div>
+                <div class="muted" style="font-size:12px;line-height:1.6">快速浏览：Manifest V3 的 background service worker、content script 注入时机、消息通信契约……</div>
+                <div class="badge" style="margin-top:10px;font-size:12px">点击标题在标签页打开 →</div>
+              </div>
+              <span class="muted" style="font-size:12px">当前网页内容区域……</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- S4 收藏库 拖拽分类 -->
+      <section id="s4" class="screen">
+        <div class="screen-head"><h1>收藏库 · 拖拽分类</h1><p>内容分类 = 用户自建文件夹，分两类：业务文件夹（每项仅 1 个归属）与标签文件夹（可多标签）。拖动条目到不同文件夹即分类。</p></div>
+        <div class="card" style="padding:0">
+          <div class="row between" style="padding:14px 16px;border-bottom:0.5px solid var(--border)">
+            <span style="font-size:14px;font-weight:500">收藏库</span><span class="muted" style="font-size:12px">共 12 条</span>
+          </div>
+          <div class="frame" style="border:0">
+            <div class="side">
+              <div class="set-sec">业务文件夹</div>
+              <div class="node" style="background:var(--surface);border:0.5px solid var(--border-2)">▸ 等待阅读 (8)</div>
+              <div class="node">▸ 归档 (4)</div>
+              <div class="set-sec" style="margin-top:12px">标签文件夹</div>
+              <div class="node">▸ 技术 (5)</div>
+              <div class="node" style="padding-left:22px;color:var(--accent)">· Chrome (2)</div>
+              <div class="node">▸ 旅行 (3)</div>
+              <div class="node" style="padding-left:22px;color:var(--accent)">· 西藏 (3)</div>
+              <div class="node" style="margin-top:14px;border-top:0.5px solid var(--border);padding-top:12px;color:var(--accent);font-weight:500">设置</div>
+            </div>
+            <div class="page">
+              <div class="hint" style="margin-bottom:12px">拖动条目分类：→ 业务文件夹 = 更改归属（每项仅 1 个）；→ 标签文件夹 = 添加标签（可多次，打多个标签）</div>
+              <div class="list-item">
+                <span class="grip">⋮⋮</span>
+                <div style="flex:1">
+                  <div style="font-size:13px;font-weight:500">西藏旅游路线详解</div>
+                  <div class="muted" style="font-size:12px;margin:4px 0 8px">归属 <span class="badge">归档</span> · 标签</div>
+                  <div class="row" style="gap:6px"><span class="chip">旅行</span><span class="chip">西藏</span></div>
+                </div>
+              </div>
+              <div class="list-item">
+                <span class="grip">⋮⋮</span>
+                <div style="flex:1">
+                  <div style="font-size:13px;font-weight:500">Chrome 扩展开发指南</div>
+                  <div class="muted" style="font-size:12px;margin:4px 0 8px">归属 <span class="badge">等待阅读</span> · 标签</div>
+                  <div class="row" style="gap:6px"><span class="chip">技术</span><span class="chip">Chrome</span></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- S5 设置 -->
+      <section id="s5" class="screen">
+        <div class="screen-head"><h1>设置</h1><p>管理两类文件夹（均用户自建、可新建/重命名/删除）；登录为 v2 占位。</p></div>
+        <div class="card" style="max-width:600px">
+          <div class="set-sec">管理业务文件夹（每项仅归属 1 个）</div>
+          <div class="folder-row"><span style="font-size:13px">等待阅读</span><span class="muted" style="font-size:12px">8 条 · 重命名 / 删除</span></div>
+          <div class="folder-row" style="margin-bottom:10px"><span style="font-size:13px">归档</span><span class="muted" style="font-size:12px">4 条 · 重命名 / 删除</span></div>
+          <span class="chip dash">+ 新建业务文件夹</span>
+
+          <div class="set-sec" style="margin-top:18px">管理标签文件夹（可多标签）</div>
+          <div class="folder-row"><span style="font-size:13px">技术</span><span class="muted" style="font-size:12px">5 条 · 重命名 / 删除</span></div>
+          <div class="folder-row" style="margin-bottom:10px"><span style="font-size:13px">旅行</span><span class="muted" style="font-size:12px">3 条 · 重命名 / 删除</span></div>
+          <span class="chip dash">+ 新建标签文件夹</span>
+
+          <div class="set-sec" style="margin-top:18px">登录（v2 启用）</div>
+          <div class="folder-row" style="opacity:.72">
+            <div><div style="font-size:13px;font-weight:500">账号登录</div><div class="muted" style="font-size:12px;margin-top:2px">邮箱登录与跨设备同步将在 v2 接入</div></div>
+            <span class="btn" style="color:var(--text-3)">登录（未启用）</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- S6 导入 -->
+      <section id="s6" class="screen">
+        <div class="screen-head"><h1>导入书签</h1><p>从普通书签栏或书签 HTML 导入；文件夹映射为层级标签，导入记录与原收藏独立。</p></div>
+        <div class="modal">
+          <div style="font-size:14px;font-weight:500;margin-bottom:14px">导入书签</div>
+          <div class="opt on"><div class="radio on"></div><div><div style="font-size:13px;font-weight:500">从浏览器书签栏导入</div><div class="muted" style="font-size:12px;margin-top:2px">读取当前 Chrome 书签，按文件夹结构导入</div></div></div>
+          <div class="opt"><div class="radio"></div><div><div style="font-size:13px;font-weight:500">从书签 HTML 文件导入</div><div class="muted" style="font-size:12px;margin-top:2px">选择导出的 bookmarks.html</div></div></div>
+          <div class="muted" style="font-size:12px;line-height:1.6;margin:6px 2px 16px">书签文件夹将映射为层级标签，例如「导入书签 / 技术 / Chrome」。导入记录与原收藏相互独立。</div>
+          <div class="row" style="justify-content:flex-end;gap:10px">
+            <span class="btn">取消</span><span class="btn primary">开始导入</span>
+          </div>
+        </div>
+      </section>
+
+    </div>
+  </main>
+</div>
+<script>
+  function show(id, el){
+    document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+    document.getElementById(id).classList.add('active');
+    document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+    el.classList.add('active');
+  }
+</script>
+</body>
+</html>

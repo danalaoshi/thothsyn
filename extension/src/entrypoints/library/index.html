@@ -1,0 +1,23 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="color-scheme" content="dark" />
+    <title>Thothsyn 收藏库</title>
+  </head>
+  <body>
+    <div id="app"></div>
+    <!-- 兜底标签页（无法注入脚本的页面）：收藏库收敛为左侧栏，右侧留中性画布 -->
+    <div id="standalone-hint" aria-hidden="true">侧栏模式 · 其他网页上仍可使用左侧抽屉</div>
+    <div id="standalone-preview" hidden>
+      <div class="sp-bar">
+        <span class="sp-title" data-no-i18n></span>
+        <span class="sp-badge">本地存档 · 离线</span>
+        <button class="sp-close" type="button" title="关闭预览" aria-label="关闭预览">×</button>
+      </div>
+      <iframe sandbox="" title="保存的内容"></iframe>
+    </div>
+    <script type="module" src="./main.ts"></script>
+  </body>
+</html>
