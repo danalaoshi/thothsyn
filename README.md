@@ -77,6 +77,10 @@ uv run uvicorn app.main:app --host 0.0.0.0 --port 3000
 
 管理页地址：`http://<你的服务器IP>:3000/manage`
 
+**托管后端（不想自己搭 Supabase 时）**：用 supabase.com 免费项目 + Render / Railway / Fly 免费层即可，详见 `server/README.md` 第 8 节。部署后会得到一个 `https://...` 地址；把扩展「设置 → 服务器地址」填成它即可（默认值仍是 `http://127.0.0.1:3000`）。
+
+**Hosted backend (if you don't want to run Supabase yourself)**: use a supabase.com free project + Render / Railway / Fly free tier — see `server/README.md` §8. You'll get a `https://...` URL; paste it into the extension **Settings → Server URL** (the default is still `http://127.0.0.1:3000`).
+
 > 公网部署前请务必：改默认数据库口令、配置真实 SMTP、关闭 `/api/mail/*`、设置 CORS 白名单、做好数据备份。详见 `server/README.md`。
 >
 > Before any public deployment: change default DB credentials, configure real SMTP, disable `/api/mail/*`, set a CORS allowlist, and back up data. See `server/README.md`.

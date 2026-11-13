@@ -1,0 +1,40 @@
+# Render Blueprint：托管 Supabase + Render
+# 部署：在 Render 导入此 GitHub 仓库（danalaoshi/thothsyn），会自动识别本文件。
+# 标 sync:false 的变量需在 Render 控制台手动填写（取值自你的 Supabase 项目设置）。
+#
+# 其他 PaaS 等价做法：
+#   - Railway：新建 Project → 连接同一仓库 → 选「Dockerfile」→ Root Directory 填 server → 设同样的环境变量
+#   - Fly.io：在 server/ 目录 `fly launch`（会生成 fly.toml），环境变量用 `fly secrets set KEY=VALUE`
+services:
+  - type: web
+    name: thothsyn-server
+    runtime: docker
+    rootDir: server
+    dockerfilePath: ./Dockerfile
+    plan: free
+    healthCheckPath: /api/health
+    envVars:
+      # 以下为基础运行参数（直接写死即可）
+      - key: PORT
+        value: "3000"
+      - key: ENV
+        value: prod
+      - key: CORS_ORIGINS
+        value: "*"
+      - key: MAIL_PROXY_ENABLED
+        value: "false"
+      - key: BOOTSTRAP_FIRST_SUPERUSER
+        value: "false"
+      # 以下来自你的 Supabase 项目（Project Settings → API / Database），部署时在控制台填写
+      - key: DATABASE_URL
+        sync: false
+      - key: SUPABASE_URL
+        sync: false
+      - key: SUPABASE_JWT_SECRET
+        sync: false
+      - key: SUPABASE_ANON_KEY
+        sync: false
+      - key: SUPABASE_SERVICE_ROLE_KEY
+        sync: false
+      - key: SUPERUSER_EMAILS
+        sync: false

@@ -213,3 +213,35 @@ uv run python -m pytest -q       # 42 条用例
 ## 7. 外部依据（MLA）
 
 Supabase. "Supabase CLI config." *Supabase Docs*, supabase.com/docs/guides/local-development/cli/config. Accessed 10 Nov. 2026.（`auth.email.double_confirm_changes` 默认 true、`auth.email.enable_confirmations` 默认 false、`auth.email.smtp.*` 配置项，以及「修改 config.toml 后需 stop/start 重启」。）
+
+## 8. 生产部署（托管 Supabase + PaaS）
+
+本地栈（`supabase start`）只用于开发。上线请改用**托管 Supabase + 容器化 PaaS**，仓库已备好部署文件：
+
+- `Dockerfile`：多阶段构建，先编管理页（`web/`）再由 FastAPI 托管在 `/manage`；`uvicorn` 监听 `$PORT`（PaaS 注入，默认 3000）。`init_db` 幂等，每次启动先建表/补列再起服务，DB 未就绪会重试。
+- `render.yaml`：Render Blueprint，导入仓库即识别；标 `sync:false` 的变量在控制台填。
+- `.env.prod.example`：生产环境变量模板（取值自你的 Supabase 项目）。
+
+### 8.1 准备 Supabase 项目
+
+1. 在 supabase.com 新建项目（免费层即可）。
+2. **Project Settings → Database → Connection string**，复制 **Pooler（事务模式，端口 6543）** 连接串填入 `DATABASE_URL`（asyncpg 用 `postgresql+asyncpg://` 前缀）。
+3. **Project Settings → API** 取 `Project URL`（`SUPABASE_URL`）、`JWT Secret`（`SUPABASE_JWT_SECRET`）、`anon` / `service_role` key。
+4. （可选）**Authentication → Providers → Email** 关闭「Confirm email」，让试用者注册零摩擦（0.1.11 起同步本就不校验邮箱确认态）。
+
+### 8.2 部署到 Render（或 Railway / Fly）
+
+1. Render 导入本仓库 → 自动识别 `render.yaml` → 在控制台填 `DATABASE_URL` / `SUPABASE_*` / `SUPERUSER_EMAILS`。
+2. 部署完成，健康检查走 `/api/health`；公开地址形如 `https://thothsyn-server.onrender.com`。
+3. 打开 `<地址>/manage` → 用 `SUPERUSER_EMAILS` 里的邮箱注册 → 自动成为超管，出现「消息」「用户留言」入口。
+
+> Railway / Fly 等价：连接同仓库、Root Directory 设 `server`、用同一份环境变量（见各平台文档）。
+
+### 8.3 上线前必做
+
+- 改默认数据库口令、配置真实 SMTP（或依赖 Supabase 默认发信，有频率限制）。
+- 关闭 `/api/mail/*`：`ENV=prod` 已自动关闭。
+- `CORS_ORIGINS` 收紧为你的前端/扩展来源白名单。
+- 配置 HTTPS（PaaS 默认提供）；本扩展鉴权链路要求后端为 **HTTPS + 真实域名**（纯 IP 会踩 CORS / 混合内容）。
+- 后台留言会收集用户联系方式与正文，上线前在隐私政策中说明。
+- `render.yaml` 的 `free` plan 会在闲置后休眠，定时同步可能延迟；正式服务建议升级 plan。
