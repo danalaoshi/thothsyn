@@ -1,3 +1,4 @@
+import { ext } from './webext';
 /**
  * 云同步客户端（扩展端）。
  *
@@ -85,12 +86,12 @@ export interface SyncReport {
 // ---------------- 存储 ----------------
 
 async function readKey<T>(key: string): Promise<T | undefined> {
-  const raw = await chrome.storage.local.get(key);
+  const raw = await ext.storage.local.get(key);
   return raw[key] as T | undefined;
 }
 
 async function writeKey(key: string, value: unknown): Promise<void> {
-  await chrome.storage.local.set({ [key]: value });
+  await ext.storage.local.set({ [key]: value });
 }
 
 export async function getServerUrl(): Promise<string> {
@@ -239,7 +240,7 @@ export async function signUp(
 }
 
 export async function signOut(): Promise<void> {
-  await chrome.storage.local.remove(AUTH_KEY);
+  await ext.storage.local.remove(AUTH_KEY);
 }
 
 export async function recoverPassword(email: string): Promise<void> {
@@ -273,15 +274,15 @@ async function apiFetch(path: string, init: RequestInit = {}): Promise<Response>
   let session = await ensureFreshSession();
   if (!session) throw new Error('未登录');
 
-  const call = (s: AuthSession) =>
-    fetch(`${base}${path}`, {
-      ...init,
-      headers: {
-        ...(init.headers ?? {}),
-        Authorization: `Bearer ${s.accessToken}`,
-        'Content-Type': 'application/json',
-      },
-    });
+  const call = (s: AuthSession) => {
+    const headers: Record<string, string> = {
+      ...(init.headers as Record<string, string> | undefined),
+      Authorization: `Bearer ${s.accessToken}`,
+    };
+    // GET 不带 Content-Type：否则会触发一次没必要的 CORS 预检
+    if (init.body !== undefined) headers['Content-Type'] = 'application/json';
+    return fetch(`${base}${path}`, { ...init, headers });
+  };
 
   let res = await call(session);
   if (res.status === 401) {
@@ -295,10 +296,66 @@ async function apiFetch(path: string, init: RequestInit = {}): Promise<Response>
   }
   if (res.status === 403) {
     const detail = await readError(res);
-    throw new Error(detail.includes('验证') ? detail : '当前账号等级不足，无法同步');
+    throw new Error(`服务器拒绝了请求（403）：${detail}`);
   }
   if (!res.ok) throw new Error(await readError(res));
   return res;
+}
+
+// ---------------- 站内消息（0.1.11） ----------------
+
+export interface AnnouncementItem {
+  id: number;
+  sender_id: string;
+  recipient_id: string | null;
+  title: string;
+  body: string;
+  created_at: number;
+}
+
+export interface AnnouncementPage {
+  items: AnnouncementItem[];
+  cursor: number;
+}
+
+/** 拉取后台消息：since 是服务端自增 id，严格单调，不会漏消息 */
+export async function fetchAnnouncements(since: number): Promise<AnnouncementPage> {
+  const res = await apiFetch(`/api/messages?since=${since}&limit=100`, {
+    method: 'GET',
+  });
+  return (await res.json()) as AnnouncementPage;
+}
+
+// ---------------- 用户留言（0.1.12） ----------------
+
+export interface FeedbackInput {
+  content: string;
+  contact_type: 'im' | 'email';
+  contact: string;
+  client_version: string;
+}
+
+/**
+ * 提交用户留言：与 apiFetch 不同，这里**刻意不要求登录**。
+ *
+ * 扩展是本地优先、不登录也能用的，留言窗口不能反过来逼用户先注册。
+ * 已登录时带上 Bearer，服务端会额外记下 user_id / 账号邮箱便于回访；
+ * 没登录就是匿名提交，靠必填的 contact 承担回访入口。
+ * 也不用 ensureFreshSession()：它刷新失败会顺手 signOut()，
+ * 对一条「只是想留个言」的请求来说副作用太大。
+ */
+export async function submitFeedback(input: FeedbackInput): Promise<{ id: number }> {
+  const base = await getServerUrl();
+  const session = await getSession();
+  const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+  if (session?.accessToken) headers.Authorization = `Bearer ${session.accessToken}`;
+  const res = await fetch(`${base}/api/feedback`, {
+    method: 'POST',
+    headers,
+    body: JSON.stringify(input),
+  });
+  if (!res.ok) throw new Error(await readError(res));
+  return (await res.json()) as { id: number };
 }
 
 // ---------------- 线上线格式转换 ----------------
@@ -453,9 +510,7 @@ export async function syncNow(mode?: SyncMode): Promise<SyncReport> {
   const effective = mode ?? (await getSyncMode());
   const session = await ensureFreshSession();
   if (!session) throw new Error('未登录，无法同步');
-  if (session.level === 'unverified') {
-    throw new Error('邮箱未验证，暂不能同步：请到注册邮箱点确认链接');
-  }
+  // 0.1.11 起注册即可同步：邮箱确认态与付费等级只作展示，不再拦截上传。
 
   const meta = await getMeta();
   const pushAt = nowMs();
@@ -522,7 +577,7 @@ export async function syncNow(mode?: SyncMode): Promise<SyncReport> {
 export async function autoSyncQuiet(): Promise<void> {
   if (!(await getAutoSync())) return;
   const session = await getSession();
-  if (!session || session.level === 'unverified') return;
+  if (!session) return;
   try {
     await syncNow('both');
   } catch (e) {

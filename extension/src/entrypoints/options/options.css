@@ -601,3 +601,86 @@ body.closing::after {
 .btn.ghost {
   background: transparent;
 }
+
+/* 后台消息卡片（0.1.11）：正文用 textContent 渲染，样式只负责排版 */
+.msg-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin: 12px 0;
+}
+.msg-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.msg-item {
+  padding: 12px 14px;
+  border: 1px solid rgba(148, 180, 220, 0.14);
+  border-radius: var(--radius);
+  background: rgba(255, 255, 255, 0.02);
+}
+.msg-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.msg-head b {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ink);
+}
+.msg-body {
+  margin: 8px 0 0;
+  white-space: pre-wrap;
+  word-break: break-word;
+  font-size: 12px;
+  line-height: 1.7;
+  color: var(--ink-2);
+}
+
+/* 用户留言卡片（0.1.12）：复用 .field 的控件规范，textarea 单独补齐 */
+.fb-form {
+  display: grid;
+  gap: 12px;
+}
+.field textarea {
+  font: 13px/1.6 var(--ui);
+  color: var(--ink);
+  background: var(--s2);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 9px 10px;
+  min-width: 0;
+  width: 100%;
+  box-sizing: border-box;
+  resize: vertical;
+}
+.field textarea:focus {
+  border-color: var(--accent-line);
+  outline: none;
+}
+.fb-count {
+  margin-top: -6px;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+.fb-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 220px) minmax(0, 1fr);
+  gap: 12px;
+}
+@media (max-width: 520px) {
+  .fb-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+.fb-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-top: 2px;
+}

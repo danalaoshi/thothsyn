@@ -520,7 +520,7 @@ async function main() {
   );
   check(
     'debug#1：background 复用兜底标签页',
-    bg.includes('libraryTabId') && bg.includes('chrome.tabs.update'),
+    bg.includes('libraryTabId') && bg.includes('ext.tabs.update'),
   );
 
   check(
@@ -535,7 +535,7 @@ async function main() {
   check(
     'debug#4a：注入前按 URL 预检，chrome:// 静默走兜底',
     bg.includes('isInjectableUrl') &&
-      bg.includes('chrome.tabs.get(tabId)') &&
+      bg.includes('ext.tabs.get(tabId)') &&
       bg.includes('if (!isInjectableUrl(tab.url)) return false;'),
   );
   check(
@@ -589,9 +589,57 @@ async function main() {
       dbSrc.includes('if (!c.updatedAt)') &&
       dbSrc.includes('if (!f.updatedAt)'),
   );
+  const serverFile = (p) =>
+    fs.existsSync(path.join(ROOT, '../server', p))
+      ? fs.readFileSync(path.join(ROOT, '../server', p), 'utf8')
+      : '';
+  const webFile = (p) =>
+    fs.existsSync(path.join(ROOT, '../server/web', p))
+      ? fs.readFileSync(path.join(ROOT, '../server/web', p), 'utf8')
+      : '';
+
   check(
-    '未验证邮箱不允许同步',
-    syn.includes("session.level === 'unverified'"),
+    '0.1.11 注册即可同步：服务端不拦 unverified、客户端不禁用控件',
+    !syn.includes("session.level === 'unverified'") &&
+      !serverFile('app/deps.py').includes('email not verified') &&
+      !optMain.includes('canSync') &&
+      !optMain.includes('未验证邮箱不允许同步'),
+  );
+  check(
+    '支付空壳已关停：upgrade 返回 410 且不再翻转 is_paid',
+    serverFile('app/routers/billing.py').includes('HTTP_410_GONE') &&
+      !serverFile('app/routers/billing.py').includes('is_paid = True'),
+  );
+  check(
+    '后台消息后端：自增游标 + 全体/定向可见 + 超管专属发送',
+    serverFile('app/routers/messages.py').includes('recipient_id.is_(None)') &&
+      serverFile('app/routers/messages.py').includes('Message.id > since') &&
+      serverFile('app/routers/admin.py').includes('@router.post("/messages")') &&
+      serverFile('app/routers/admin.py').includes('Depends(require_superuser)') &&
+      serverFile('migrations/003_messages.sql').includes('bigserial PRIMARY KEY'),
+  );
+  check(
+    '后台消息扩展：独立 alarm 轮询 + 桌面通知 + notifications 权限',
+    bg.includes('thoth-message-poll') &&
+      bg.includes('pollAnnouncementsQuiet') &&
+      src('src/lib/announcements.ts').includes('ext.notifications.create') &&
+      (manifest.permissions ?? []).includes('notifications') &&
+      (manifest.permissions ?? []).includes('alarms'),
+  );
+  check(
+    '后台消息正文按纯文本渲染，绝不进 innerHTML / srcdoc',
+    optMain.includes('title.textContent =') &&
+      optMain.includes('p.textContent = text') &&
+      // 只查真实的 HTML 注入调用，别把注释里提到的名词也算成违规
+      !/\.innerHTML\s*=|\.srcdoc\s*=|insertAdjacentHTML\s*\(/.test(
+        src('src/lib/announcements.ts'),
+      ),
+  );
+  check(
+    '管理页「消息」视图：收件箱 + 超管发送',
+    webFile('src/components/Messages.tsx').includes('/admin/messages') &&
+      webFile('src/components/Messages.tsx').includes('/messages?since=0') &&
+      webFile('src/components/Dashboard.tsx').includes('tab === "messages"'),
   );
   check(
     '令牌过期自动刷新，401 再刷一次重试',
@@ -600,7 +648,7 @@ async function main() {
   check(
     '后台每日同步用 alarms（SW 休眠后仍能唤醒）',
     bg.includes('thoth-daily-sync') &&
-      bg.includes('chrome.alarms.create') &&
+      bg.includes('ext.alarms.create') &&
       bg.includes('autoSyncQuiet') &&
       (manifest.permissions ?? []).includes('alarms'),
   );
@@ -699,6 +747,174 @@ async function main() {
   );
   const envEx = fs.readFileSync(path.join(ROOT, '../server/.env.example'), 'utf8');
   check('debug#8：.env.example 写明本地邮件配置', envEx.includes('MAIL_URL=') && envEx.includes('MAIL_PROXY_ENABLED='));
+
+  console.log('\n=== 13. 0.1.12：用户留言通道（设置页 → 数据库 → 管理页） ===');
+  const fbRouter = serverFile('app/routers/feedback.py');
+  const fbAdmin = serverFile('app/routers/admin.py');
+  const fbView = webFile('src/components/Feedback.tsx');
+  const dashFb = webFile('src/components/Dashboard.tsx');
+  const fbSlice = optMain.slice(
+    optMain.indexOf('async function renderFeedback'),
+    optMain.indexOf('function wireLoggedOut'),
+  );
+  check(
+    '留言后端：500 字上限 + 联系方式二选一 + 可选鉴权（不登录也能留）',
+    serverFile('app/schemas.py').includes('max_length=500') &&
+      fbRouter.includes('Depends(get_optional_user)') &&
+      fbRouter.includes('contact_type') &&
+      serverFile('app/deps.py').includes('async def get_optional_user'),
+  );
+  check(
+    '留言表与迁移：feedback 字段齐全 + 索引 + init_db 对齐',
+    serverFile('app/models.py').includes('__tablename__ = "feedback"') &&
+      serverFile('app/models.py').includes('is_read') &&
+      serverFile('migrations/004_feedback.sql').includes('bigserial PRIMARY KEY') &&
+      serverFile('init_db.py').includes('"feedback"'),
+  );
+  check(
+    '留言防刷与读写分离：60 秒冷却 + 仅超管可看 / 标记 / 删除',
+    fbRouter.includes('CONTACT_COOLDOWN_MS') &&
+      fbRouter.includes('HTTP_429') &&
+      fbAdmin.includes('@router.get("/feedback")') &&
+      fbAdmin.includes('@router.delete("/feedback/{fb_id}")') &&
+      fbAdmin.includes('Depends(require_superuser)'),
+  );
+  check(
+    '扩展留言窗口：不登录也能提交 + 500 字计数 + 联系方式',
+    syn.includes('export async function submitFeedback') &&
+      syn.includes('/api/feedback') &&
+      optMain.includes('id="fb-content"') &&
+      optMain.includes('maxlength="500"') &&
+      optMain.includes('Array.from(content.value).length') &&
+      optMain.includes('contact_type'),
+  );
+  check(
+    '留言表单是纯静态模板，状态与正文一律 textContent',
+    fbSlice.includes('msg.textContent = text') &&
+      fbSlice.includes('count.textContent =') &&
+      !/\$\{/.test(fbSlice),
+  );
+  check(
+    '管理页「用户留言」仅超管可见，正文交 React 自动转义',
+    dashFb.includes('tab === "feedback" && isSuper') &&
+      dashFb.includes('用户留言') &&
+      fbView.includes('/admin/feedback') &&
+      !fbView.includes('dangerouslySetInnerHTML'),
+  );
+  const fbZh = JSON.parse(fs.readFileSync(path.join(ROOT, 'public/_locales/zh_CN/messages.json'), 'utf8'));
+  const fbEn = JSON.parse(fs.readFileSync(path.join(ROOT, 'public/_locales/en/messages.json'), 'utf8'));
+  check(
+    '升级说明与两套语言包都覆盖留言文案',
+    fs.readFileSync(path.join(ROOT, '../docs/readme.md'), 'utf8').includes('### 给我留言') &&
+      !!fbZh.feedbackTitle && !!fbEn.feedbackTitle &&
+      fbZh.feedbackCount.message.includes('$1') && fbEn.feedbackCount.message.includes('$1'),
+  );
+
+  console.log('\n=== 12. 0.1.13：Chrome / Firefox 双目标 ===');
+  const webext = src('src/lib/webext.ts');
+  check(
+    '统一扩展 API 挑选第一个拥有 tabs 的全局（Firefox browser / Chrome chrome）',
+    webext.includes('pickExt') &&
+      webext.includes('filter(Boolean)') &&
+      webext.includes('tabs') &&
+      webext.includes('export const ext'),
+  );
+  check(
+    '0.1.17：Firefox 注入网页的 library iframe 无 browser.tabs 时，openTab 兜底交后台开标签页',
+    webext.includes('export async function openTab') &&
+      webext.includes('runtime.sendMessage') &&
+      webext.includes('__thothOpenTab'),
+  );
+  const entryFiles = [
+    'src/entrypoints/background.ts',
+    'src/entrypoints/content.ts',
+    'src/entrypoints/options/main.ts',
+    'src/entrypoints/library/main.ts',
+    'src/entrypoints/reader/main.ts',
+    'src/lib/announcements.ts',
+    'src/lib/i18n.ts',
+    'src/lib/import.ts',
+    'src/lib/settings.ts',
+    'src/lib/sync.ts',
+  ];
+  // 只拦真实方法调用（小写开头）；chrome.tabs.Tab 这类类型引用不受影响
+  const legacyCall =
+    /\bchrome\.(storage|tabs|runtime|alarms|action|contextMenus|notifications|bookmarks|scripting|i18n)\.[a-z]/;
+  const legacyFiles = entryFiles.filter((f) => legacyCall.test(src(f)));
+  check(
+    '所有运行时调用走 ext.*，不再直接 await 回调式 chrome.*',
+    legacyFiles.length === 0,
+    legacyFiles.join(', '),
+  );
+  check(
+    'background 对 action / contextMenus 做 Firefox 别名兜底',
+    bg.includes('const actionApi =') &&
+      bg.includes('browserAction') &&
+      bg.includes('const menusApi =') &&
+      bg.includes('typeof chrome.contextMenus'),
+  );
+  const pkg = JSON.parse(
+    fs.readFileSync(path.join(ROOT, 'package.json'), 'utf8'),
+  );
+  check(
+    'package.json 提供 Firefox MV3 的 dev / build / zip 脚本',
+    ['dev:firefox', 'build:firefox', 'zip:firefox'].every((k) => {
+      const cmd = pkg.scripts[k] ?? '';
+      return cmd.includes('-b firefox') && cmd.includes('--mv3');
+    }),
+  );
+  const wxtCfg = fs.readFileSync(path.join(ROOT, 'wxt.config.ts'), 'utf8');
+  check(
+    'Firefox manifest 分支含 gecko.id 与数据收集声明',
+    wxtCfg.includes("browser === 'firefox'") &&
+      wxtCfg.includes('browser_specific_settings') &&
+      wxtCfg.includes('data_collection_permissions') &&
+      wxtCfg.includes('thothsyn@local'),
+  );
+  const upgradeReadme = fs.readFileSync(
+    path.join(ROOT, '../docs/readme.md'),
+    'utf8',
+  );
+  check(
+    '升级说明同时给出 Chrome 与 Firefox 的加载方式',
+    upgradeReadme.includes('chrome://extensions') &&
+      upgradeReadme.includes('加载已解压的扩展目录') &&
+      upgradeReadme.includes('about:debugging') &&
+      upgradeReadme.includes('临时加载附加组件') &&
+      upgradeReadme.includes('firefox-mv3/manifest.json'),
+  );
+  const ffManifestPath = path.join(ROOT, '.output/firefox-mv3/manifest.json');
+  if (fs.existsSync(ffManifestPath)) {
+    const ff = JSON.parse(fs.readFileSync(ffManifestPath, 'utf8'));
+    check(
+      'Firefox 产物：MV3 + 事件页 background.scripts + gecko.id',
+      ff.manifest_version === 3 &&
+        Array.isArray(ff.background?.scripts) &&
+        !ff.background?.service_worker &&
+        !!ff.browser_specific_settings?.gecko?.id &&
+        ff.version === pkg.version,
+    );
+  } else {
+    console.log('  (Firefox 产物尚未构建，跳过 manifest 断言)');
+  }
+
+  check(
+    '0.1.14 超管提权：名单自愈 + 引导开关 + prod 强制禁用 + 接入鉴权路径',
+    serverFile('app/config.py').includes('allow_first_user_bootstrap') &&
+      serverFile('app/config.py').includes('bootstrap_first_superuser') &&
+      serverFile('app/config.py').includes('!= "prod"') &&
+      serverFile('app/deps.py').includes('apply_superuser_policy') &&
+      serverFile('app/deps.py').includes('await apply_superuser_policy(profile') &&
+      serverFile('app/deps.py').includes('pg_advisory_xact_lock') &&
+      serverFile('.env.example').includes('BOOTSTRAP_FIRST_SUPERUSER'),
+  );
+  check(
+    '超管提权有 pytest 覆盖：清库自愈 / 首个账号引导 / prod 禁用 / 读留言',
+    serverFile('tests/test_superuser.py').includes('test_allowlist_self_heals_after_profile_wipe') &&
+      serverFile('tests/test_superuser.py').includes('test_bootstrap_promotes_only_first_account') &&
+      serverFile('tests/test_superuser.py').includes('test_bootstrap_forced_off_in_prod') &&
+      serverFile('tests/test_superuser.py').includes('test_promoted_account_can_read_feedback'),
+  );
 
   console.log(`\nFAILED = ${failed}`);
   process.exitCode = failed ? 1 : 0;

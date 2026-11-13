@@ -5,8 +5,17 @@ import Captures from "./Captures";
 import Folders from "./Folders";
 import AdminPanel from "./AdminPanel";
 import Mailbox from "./Mailbox";
+import Messages from "./Messages";
+import Feedback from "./Feedback";
 
-type Tab = "account" | "captures" | "folders" | "admin" | "mailbox";
+type Tab =
+  | "account"
+  | "captures"
+  | "folders"
+  | "messages"
+  | "feedback"
+  | "admin"
+  | "mailbox";
 
 export default function Dashboard() {
   const { user, token, signOut, updatePassword, updateEmail } = useAuth();
@@ -72,15 +81,23 @@ export default function Dashboard() {
           <NavBtn active={tab === "folders"} onClick={() => setTab("folders")}>
             文件夹
           </NavBtn>
+          <NavBtn active={tab === "messages"} onClick={() => setTab("messages")}>
+            消息
+          </NavBtn>
           {mail.enabled && (
             <NavBtn active={tab === "mailbox"} onClick={() => setTab("mailbox")}>
               本地邮箱
             </NavBtn>
           )}
           {isSuper && (
-            <NavBtn active={tab === "admin"} onClick={() => setTab("admin")}>
-              管理（超管）
-            </NavBtn>
+            <>
+              <NavBtn active={tab === "feedback"} onClick={() => setTab("feedback")}>
+                用户留言
+              </NavBtn>
+              <NavBtn active={tab === "admin"} onClick={() => setTab("admin")}>
+                管理（超管）
+              </NavBtn>
+            </>
           )}
         </nav>
 
@@ -116,6 +133,8 @@ export default function Dashboard() {
           )}
           {tab === "captures" && <Captures />}
           {tab === "folders" && <Folders />}
+          {tab === "messages" && <Messages isSuper={isSuper} />}
+          {tab === "feedback" && isSuper && <Feedback />}
           {tab === "admin" && isSuper && <AdminPanel />}
           {tab === "mailbox" && mail.enabled && <Mailbox mailUrl={mail.url} />}
         </div>

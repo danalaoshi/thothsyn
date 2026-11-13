@@ -54,6 +54,8 @@ async def _db():
     async with eng.begin() as conn:
         await conn.execute(text("DELETE FROM captures"))
         await conn.execute(text("DELETE FROM folders"))
+        await conn.execute(text("DELETE FROM messages"))
+        await conn.execute(text("DELETE FROM feedback"))
         await conn.execute(text("DELETE FROM profiles"))
     await eng.dispose()
 

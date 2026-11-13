@@ -1,3 +1,4 @@
+import { ext, openTab } from '../../lib/webext';
 import './library.css';
 import { db } from '../../db/database';
 import type { Capture, Folder } from '../../types';
@@ -152,11 +153,15 @@ function render(): void {
         <path d="M19.4 15a1.7 1.7 0 0 0 .34 1.88l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06A1.7 1.7 0 0 0 15 19.4a1.7 1.7 0 0 0-1 .6 1.7 1.7 0 0 0-.4 1.1V21a2 2 0 1 1-4 0v-.09A1.7 1.7 0 0 0 8.5 19.4a1.7 1.7 0 0 0-1.88.34l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.7 1.7 0 0 0 4.6 15a1.7 1.7 0 0 0-.6-1 1.7 1.7 0 0 0-1.1-.4H3a2 2 0 1 1 0-4h.09A1.7 1.7 0 0 0 4.6 8.5a1.7 1.7 0 0 0-.34-1.88l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.7 1.7 0 0 0 9 4.6a1.7 1.7 0 0 0 1-.6 1.7 1.7 0 0 0 .4-1.1V3a2 2 0 1 1 4 0v.09A1.7 1.7 0 0 0 15.5 4.6a1.7 1.7 0 0 0 1.88-.34l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.7 1.7 0 0 0 19.4 9c.14.36.4.66.73.86.3.18.65.28 1 .28H21a2 2 0 1 1 0 4h-.09a1.7 1.7 0 0 0-1.51 1Z" />
       </svg>
       <span class="settings-label">设置</span>
-      <span class="settings-ver">v${esc(chrome.runtime.getManifest().version)}</span>
+      <span class="settings-ver">v${esc(ext.runtime.getManifest().version)}</span>
     </button>`;
-  foot.querySelector('button')?.addEventListener('click', () =>
-    chrome.runtime.openOptionsPage(),
-  );
+  foot.querySelector('button')?.addEventListener('click', () => {
+    // 在 Firefox 被注入到普通网页的 library iframe 里 ext.tabs 为 undefined，
+    // 直接用 openTab()：有 tabs 就直连，没有就交给后台代开（见 webext.ts）。
+    void openTab(ext.runtime.getURL('options.html')).catch((e) =>
+      console.error('[thoth] open settings failed', e),
+    );
+  });
   tree.appendChild(foot);
   mountTreeSplitter(tree);
 
@@ -379,14 +384,15 @@ function renderItem(cap: Capture): HTMLElement {
     if ((e.target as HTMLElement).closest('.it-del, .del-confirm')) return;
     // readme 收藏没有原网页（url 为空），点开的是本地快照阅读页
     if (cap.id === README_ID) {
-      void chrome.tabs.create({
-        url: chrome.runtime.getURL(
-          `reader.html?id=${encodeURIComponent(cap.id)}`,
-        ),
-      });
+      void openTab(
+        ext.runtime.getURL(`reader.html?id=${encodeURIComponent(cap.id)}`),
+      ).catch((e) => console.error('[thoth] open readme failed', e));
       return;
     }
-    if (cap.url) void chrome.tabs.create({ url: cap.url });
+    if (cap.url)
+      void openTab(cap.url).catch((e) =>
+        console.error('[thoth] open capture failed', e),
+      );
   });
   el.querySelector('.it-del')?.addEventListener('click', (e) => {
     e.stopPropagation();
@@ -577,7 +583,7 @@ function mountTreeSplitter(tree: HTMLElement): void {
       document.removeEventListener('mousemove', move, true);
       document.removeEventListener('mouseup', up, true);
       sp.classList.remove('dragging');
-      void chrome.storage.local.set({ thothTreeWidth: treeWidth });
+      void ext.storage.local.set({ thothTreeWidth: treeWidth });
     };
     document.addEventListener('mousemove', move, true);
     document.addEventListener('mouseup', up, true);
@@ -605,18 +611,18 @@ function refresh(): void {
 
 /**
  * debug#2 主通道：任何写入 Dexie 的地方都 bump 一个 storage 版本号。
- * chrome.storage.onChanged 对网页内的扩展 iframe 可靠投递，
+ * ext.storage.onChanged 对网页内的扩展 iframe 可靠投递，
  * 而 Service Worker 的 runtime.sendMessage 不保证（旧版偶发不刷新）。
  * 监听器放在模块顶层同步注册，避免 iframe 初始化期间漏事件。
  */
-chrome.storage.onChanged.addListener((changes, area) => {
+ext.storage.onChanged.addListener((changes, area) => {
   if (area !== 'local') return;
   if (changes[REVISION_KEY]) refresh();
   if (changes[DELETE_CONFIRM_KEY])
     deleteConfirm = needsDeleteConfirm(changes[DELETE_CONFIRM_KEY].newValue);
 });
 
-chrome.runtime.onMessage.addListener((msg: unknown) => {
+ext.runtime.onMessage.addListener((msg: unknown) => {
   const m = msg as { type?: string } | undefined;
   // runtime 消息保留为冗余通道，与 storage 版本号并存
   if (m?.type === 'CAPTURE_SAVED' || m?.type === 'FOLDERS_CHANGED') refresh();
@@ -630,7 +636,7 @@ chrome.runtime.onMessage.addListener((msg: unknown) => {
 
 // ---------------- 初始化 ----------------
 async function init() {
-  const saved = await chrome.storage.local.get('thothTreeWidth');
+  const saved = await ext.storage.local.get('thothTreeWidth');
   treeWidth = Math.min(
     Math.max(Number(saved.thothTreeWidth) || 220, 160),
     420,

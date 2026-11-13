@@ -1,3 +1,4 @@
+import { ext } from '../lib/webext';
 import { defineContentScript } from 'wxt/utils/define-content-script';
 import type {
   CaptureFullResult,
@@ -349,7 +350,7 @@ export default defineContentScript({
         const title = document.title;
         const url = location.href;
         cleanup();
-        chrome.runtime.sendMessage({
+        ext.runtime.sendMessage({
           type: 'PARTIAL_RESULT',
           title,
           url,
@@ -504,7 +505,7 @@ export default defineContentScript({
       document.removeEventListener('mouseup', onResizeEnd, true);
       libResizing = false;
       // 宽度写回 storage，由 background 广播给所有标签页
-      void chrome.runtime.sendMessage({
+      void ext.runtime.sendMessage({
         type: 'LIBRARY_SET_STATE',
         patch: { width: libState.width },
       } satisfies LibrarySetStateMsg);
@@ -651,7 +652,7 @@ export default defineContentScript({
           </div>
           <div class="edge" title="展开收藏库"></div>
           <div class="resizer" title="拖动调整宽度"></div>
-          <iframe src="${chrome.runtime.getURL('library.html')}" title="Thothsyn 收藏库"></iframe>
+          <iframe src="${ext.runtime.getURL('library.html')}" title="Thothsyn 收藏库"></iframe>
         </div>
         <div class="pv" hidden>
           <div class="pv-bar">
@@ -673,13 +674,13 @@ export default defineContentScript({
 
       dock.addEventListener('mouseenter', () => libExpand());
       dock.querySelector('[data-act="close"]')?.addEventListener('click', () => {
-        void chrome.runtime.sendMessage({
+        void ext.runtime.sendMessage({
           type: 'LIBRARY_SET_STATE',
           patch: { open: false, pinned: false },
         } satisfies LibrarySetStateMsg);
       });
       dock.querySelector('[data-act="pin"]')?.addEventListener('click', () => {
-        void chrome.runtime.sendMessage({
+        void ext.runtime.sendMessage({
           type: 'LIBRARY_SET_STATE',
           patch: { pinned: !libState.pinned },
         } satisfies LibrarySetStateMsg);
@@ -786,7 +787,7 @@ export default defineContentScript({
 
     // 只接受收藏库 iframe 发来的预览消息（校验 origin 与 source），
     // 网页自身伪造的消息会被丢弃。
-    const extOrigin = new URL(chrome.runtime.getURL('library.html')).origin;
+    const extOrigin = new URL(ext.runtime.getURL('library.html')).origin;
     window.addEventListener('message', (e: MessageEvent) => {
       if (e.origin !== extOrigin) return;
       if (!libFrame || e.source !== libFrame.contentWindow) return;
@@ -798,7 +799,7 @@ export default defineContentScript({
 
     // 页面初始化拉取持久状态：用户没点过 × 就一直保持自动隐藏模式
     void Promise.resolve(
-      chrome.runtime.sendMessage({ type: 'LIBRARY_GET_STATE' }) as Promise<
+      ext.runtime.sendMessage({ type: 'LIBRARY_GET_STATE' }) as Promise<
         LibraryState | undefined
       >,
     )
@@ -809,7 +810,7 @@ export default defineContentScript({
 
     // ---- 工具栏图标闪烁（debug#6） ----
     // Chrome 官方：action.setIcon 只用于静态图片，不支持动画图片；
-    // MV3 Service Worker 空闲约 30s 被回收、chrome.alarms 最小周期 30s，
+    // MV3 Service Worker 空闲约 30s 被回收、ext.alarms 最小周期 30s，
     // 因此不能靠后台定时器做快速闪烁。改由**可见标签页**发心跳，
     // 后台收到后交替 setIcon 两帧静态 PNG；隐藏标签页不发送，避免并发唤醒。
     const reducedMotion = window.matchMedia(
@@ -821,7 +822,7 @@ export default defineContentScript({
       iconTimer = window.setInterval(() => {
         if (document.visibilityState !== 'visible') return;
         void Promise.resolve(
-          chrome.runtime.sendMessage({ type: 'ICON_TICK' }),
+          ext.runtime.sendMessage({ type: 'ICON_TICK' }),
         ).catch(() => {});
       }, 900);
     }
@@ -831,7 +832,7 @@ export default defineContentScript({
       iconTimer = 0;
     }
     void Promise.resolve(
-      chrome.runtime.sendMessage({ type: 'ICON_GET_STATE' }) as Promise<
+      ext.runtime.sendMessage({ type: 'ICON_GET_STATE' }) as Promise<
         { blink?: boolean } | undefined
       >,
     )
@@ -841,7 +842,7 @@ export default defineContentScript({
       .catch(() => {});
 
     // ---- 消息路由 ----
-    chrome.runtime.onMessage.addListener(
+    ext.runtime.onMessage.addListener(
       (msg: IncomingMsg, _sender, sendResponse) => {
         if (msg?.type === 'THOTH_PING') {
           sendResponse(true);

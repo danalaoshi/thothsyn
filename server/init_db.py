@@ -1,4 +1,4 @@
-"""建表脚本（开发用）：创建 profiles / folders / captures 三表并补齐增量结构。
+"""建表脚本（开发用）：创建 profiles / folders / captures / messages / feedback 五表并补齐增量结构。
 
 运行：在 server/ 目录下 `uv run python -m init_db`
 幂等：可反复执行。已有库不会被删表，只补列/索引/序列。
@@ -40,10 +40,10 @@ async def init() -> None:
         await conn.run_sync(models.Base.metadata.create_all)
         await _apply_sql_files(conn)
         # 确保 profiles 行级安全关闭（我们使用应用层 user_id 隔离，连接以 postgres 角色直连）
-        for tbl in ("profiles", "folders", "captures"):
+        for tbl in ("profiles", "folders", "captures", "messages", "feedback"):
             await conn.execute(text(f"ALTER TABLE {tbl} DISABLE ROW LEVEL SECURITY"))
     await engine.dispose()
-    print("tables ensured: profiles, folders, captures (+ rev / tombstones)")
+    print("tables ensured: profiles, folders, captures, messages, feedback (+ rev / tombstones)")
 
 
 if __name__ == "__main__":

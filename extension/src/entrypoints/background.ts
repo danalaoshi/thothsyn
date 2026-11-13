@@ -1,3 +1,4 @@
+import { ext } from '../lib/webext';
 import { defineBackground } from 'wxt/utils/define-background';
 import { db } from '../db/database';
 import { defaultBusinessFolder, ensureSeed } from '../lib/seed';
@@ -11,6 +12,10 @@ import {
 import { bumpRevision, getBool, ICON_BLINK_KEY } from '../lib/settings';
 import { addCapture } from '../lib/repo';
 import { autoSyncQuiet, AUTO_SYNC_KEY, getAutoSync } from '../lib/sync';
+import {
+  pollAnnouncementsQuiet,
+  wireAnnouncementClicks,
+} from '../lib/announcements';
 import type { Capture } from '../types';
 import type {
   AssetsChangedMsg,
@@ -61,6 +66,14 @@ const ICON_FRAMES = {
 const ICON_TICK_MIN_MS = 700;
 
 export default defineBackground(() => {
+  // Firefox 把 action / contextMenus 也提供过 browserAction / menus 两个名字；
+  // 这里在入口内做一次特征探测，Chrome 与 Firefox MV3 都拿到同一个 API 形状。
+  // 参考 WXT「Feature Detection」：(browser.action ?? browser.browser_action)。
+  const actionApi = (ext.action ??
+    (ext as unknown as { browserAction?: typeof chrome.action }).browserAction)!;
+  const menusApi = (ext.contextMenus ??
+    (ext as unknown as { menus?: typeof chrome.contextMenus }).menus)!;
+
   // ---- 播种默认业务文件夹 + readme 收藏（幂等） ----
   // SW 每次唤醒都会跑到这里，因此「全新安装」和「升级到新版本」都会补上
   // readme；内容有变化时才写库，不会每次唤醒都触发收藏库刷新。
@@ -76,17 +89,17 @@ export default defineBackground(() => {
   function applyIconFrame(frame: 'a' | 'b'): void {
     iconFrame = frame;
     void Promise.resolve(
-      chrome.action.setIcon({ path: ICON_FRAMES[frame] }),
+      actionApi.setIcon({ path: ICON_FRAMES[frame] }),
     ).catch(() => {});
   }
 
   function broadcastIconState(blink: boolean): void {
     const msg: IconBlinkStateMsg = { type: 'ICON_BLINK_STATE', blink };
-    void Promise.resolve(chrome.tabs.query({}))
+    void Promise.resolve(ext.tabs.query({}))
       .then((tabs) => {
         for (const t of tabs) {
           if (t.id == null) continue;
-          void Promise.resolve(chrome.tabs.sendMessage(t.id, msg)).catch(
+          void Promise.resolve(ext.tabs.sendMessage(t.id, msg)).catch(
             () => {},
           );
         }
@@ -103,7 +116,7 @@ export default defineBackground(() => {
   });
 
   // 设置页改开关 → storage 事件 → 缓存 + 广播给所有标签页（关闭时回到静态帧）
-  chrome.storage.onChanged.addListener((changes, area) => {
+  ext.storage.onChanged.addListener((changes, area) => {
     if (area !== 'local' || !changes[ICON_BLINK_KEY]) return;
     iconBlink = changes[ICON_BLINK_KEY].newValue === true;
     if (!iconBlink) applyIconFrame('a');
@@ -111,39 +124,62 @@ export default defineBackground(() => {
   });
 
   // ---- 每日自动同步：MV3 只有 alarms 能在 SW 休眠后按时唤醒 ----
-  // 开关存在 chrome.storage，改开关后由 storage 监听对齐 alarm，避免两处状态不一致。
+  // 开关存在 ext.storage，改开关后由 storage 监听对齐 alarm，避免两处状态不一致。
   const SYNC_ALARM = 'thoth-daily-sync';
 
   async function reconcileSyncAlarm(): Promise<void> {
     const on = await getAutoSync();
-    const existing = await chrome.alarms.get(SYNC_ALARM);
+    const existing = await ext.alarms.get(SYNC_ALARM);
     if (on && !existing) {
       // 延迟 1 分钟先跑一次：用户刚打开开关时不该等一整天
-      chrome.alarms.create(SYNC_ALARM, {
+      ext.alarms.create(SYNC_ALARM, {
         delayInMinutes: 1,
         periodInMinutes: 60 * 24,
       });
     } else if (!on && existing) {
-      await chrome.alarms.clear(SYNC_ALARM);
+      await ext.alarms.clear(SYNC_ALARM);
     }
   }
 
-  chrome.alarms.onAlarm.addListener((alarm) => {
+  ext.alarms.onAlarm.addListener((alarm) => {
     if (alarm.name === SYNC_ALARM) void autoSyncQuiet();
   });
   void reconcileSyncAlarm().catch(() => {});
 
   // 设置页改「每日自动同步」开关 → 立刻对齐 alarm
-  chrome.storage.onChanged.addListener((changes, area) => {
+  ext.storage.onChanged.addListener((changes, area) => {
     if (area === 'local' && changes[AUTO_SYNC_KEY]) {
       void reconcileSyncAlarm().catch(() => {});
     }
   });
 
+  // ---- 后台消息轮询（0.1.11）----
+  // 独立 alarm，故意不与「每日自动同步」开关绑定：用户关掉自动同步，
+  // 后台发的通知也必须能到达。未登录时 pollAnnouncements() 会直接跳过。
+  const MESSAGE_ALARM = 'thoth-message-poll';
+
+  async function reconcileMessageAlarm(): Promise<void> {
+    const existing = await ext.alarms.get(MESSAGE_ALARM);
+    if (!existing) {
+      // 首次 1 分钟后跑一次，之后每小时一次；设置页打开时还会主动拉一次
+      ext.alarms.create(MESSAGE_ALARM, {
+        delayInMinutes: 1,
+        periodInMinutes: 60,
+      });
+    }
+  }
+
+  ext.alarms.onAlarm.addListener((alarm) => {
+    if (alarm.name === MESSAGE_ALARM) void pollAnnouncementsQuiet();
+  });
+  wireAnnouncementClicks();
+  void reconcileMessageAlarm().catch(() => {});
+  void pollAnnouncementsQuiet();
+
   // ---- 离线资源：后台下载队列（不阻塞保存主链路） ----
   function notifyAssetsChanged(): void {
     void Promise.resolve(
-      chrome.runtime.sendMessage({
+      ext.runtime.sendMessage({
         type: 'ASSETS_CHANGED',
       } satisfies AssetsChangedMsg),
     ).catch(() => {});
@@ -206,20 +242,20 @@ export default defineBackground(() => {
   );
 
   // ---- 安装 / 更新：重建右键菜单 ----
-  chrome.runtime.onInstalled.addListener(async () => {
+  ext.runtime.onInstalled.addListener(async () => {
     applyIconFrame('a');
-    await chrome.contextMenus.removeAll();
-    chrome.contextMenus.create({
+    await menusApi.removeAll();
+    menusApi.create({
       id: 'thoth-save-full',
       title: message('menuSaveFull'),
       contexts: ['action'],
     });
-    chrome.contextMenus.create({
+    menusApi.create({
       id: 'thoth-save-partial',
       title: message('menuSavePartial'),
       contexts: ['action'],
     });
-    chrome.contextMenus.create({
+    menusApi.create({
       id: 'thoth-open-library',
       title: message('menuOpenLibrary'),
       contexts: ['action'],
@@ -231,11 +267,11 @@ export default defineBackground(() => {
     );
   });
 
-  chrome.runtime.onStartup.addListener(() => applyIconFrame('a'));
+  ext.runtime.onStartup.addListener(() => applyIconFrame('a'));
 
-  // ---- 收藏库状态：chrome.storage.local 持久化，背景页统一广播 ----
+  // ---- 收藏库状态：ext.storage.local 持久化，背景页统一广播 ----
   async function getLibraryState(): Promise<LibraryState> {
-    const raw = await chrome.storage.local.get(LIB_KEY);
+    const raw = await ext.storage.local.get(LIB_KEY);
     const saved = raw[LIB_KEY] as Partial<LibraryState> | undefined;
     const state: LibraryState = { ...DEFAULT_LIB_STATE, ...(saved ?? {}) };
     state.width = Math.min(
@@ -247,11 +283,11 @@ export default defineBackground(() => {
 
   function broadcastLibrary(state: LibraryState, reveal = false): void {
     const msg: LibraryStateMsg = { type: 'LIBRARY_STATE', state, reveal };
-    void Promise.resolve(chrome.tabs.query({}))
+    void Promise.resolve(ext.tabs.query({}))
       .then((tabs) => {
         for (const t of tabs) {
           if (t.id == null) continue;
-          void Promise.resolve(chrome.tabs.sendMessage(t.id, msg)).catch(
+          void Promise.resolve(ext.tabs.sendMessage(t.id, msg)).catch(
             () => {},
           );
         }
@@ -264,7 +300,7 @@ export default defineBackground(() => {
     reveal = false,
   ): Promise<void> {
     const next: LibraryState = { ...(await getLibraryState()), ...patch };
-    await chrome.storage.local.set({ [LIB_KEY]: next });
+    await ext.storage.local.set({ [LIB_KEY]: next });
     broadcastLibrary(next, reveal);
   }
 
@@ -295,7 +331,7 @@ export default defineBackground(() => {
     // runtime 消息保留为冗余（收藏库没打开时无接收端，属正常）。
     void bumpRevision().catch(() => {});
     void Promise.resolve(
-      chrome.runtime.sendMessage({ type: 'CAPTURE_SAVED', id: capture.id }),
+      ext.runtime.sendMessage({ type: 'CAPTURE_SAVED', id: capture.id }),
     ).catch(() => {});
 
     // 外链资源后台下载：入队即返回，不等待网络
@@ -313,20 +349,20 @@ export default defineBackground(() => {
     // 不预检就会像 0.1.6 那样反复刷 "Cannot access a chrome:// URL"。
     let tab: chrome.tabs.Tab | undefined;
     try {
-      tab = await chrome.tabs.get(tabId);
+      tab = await ext.tabs.get(tabId);
     } catch {
       return false;
     }
     if (!isInjectableUrl(tab.url)) return false;
 
     try {
-      await chrome.tabs.sendMessage(tabId, { type: 'THOTH_PING' });
+      await ext.tabs.sendMessage(tabId, { type: 'THOTH_PING' });
       return true;
     } catch {
       // 无接收端，继续注入
     }
     try {
-      await chrome.scripting.executeScript({
+      await ext.scripting.executeScript({
         target: { tabId },
         files: ['content-scripts/content.js'],
       });
@@ -345,9 +381,9 @@ export default defineBackground(() => {
    */
   let libraryTabId: number | null = null;
   function openLibraryInTab(): void {
-    const url = chrome.runtime.getURL('library.html');
+    const url = ext.runtime.getURL('library.html');
     const create = () => {
-      void Promise.resolve(chrome.tabs.create({ url }))
+      void Promise.resolve(ext.tabs.create({ url }))
         .then((t) => {
           libraryTabId = t.id ?? null;
         })
@@ -358,8 +394,8 @@ export default defineBackground(() => {
       return;
     }
     const id = libraryTabId;
-    void Promise.resolve(chrome.tabs.get(id))
-      .then(() => chrome.tabs.update(id, { active: true }))
+    void Promise.resolve(ext.tabs.get(id))
+      .then(() => ext.tabs.update(id, { active: true }))
       .catch(() => {
         libraryTabId = null;
         create();
@@ -367,14 +403,14 @@ export default defineBackground(() => {
   }
 
   // ---- 图标单击 = 整页保存 ----
-  chrome.action.onClicked.addListener(async (tab) => {
+  actionApi.onClicked.addListener(async (tab) => {
     if (!tab.id) return;
     try {
       if (!(await ensureContentScript(tab.id))) {
         flashBadge(tab.id, '!');
         return;
       }
-      const res = (await chrome.tabs.sendMessage(tab.id, {
+      const res = (await ext.tabs.sendMessage(tab.id, {
         type: 'CAPTURE_FULL',
       })) as CaptureFullResult | undefined;
       if (!res) {
@@ -390,7 +426,7 @@ export default defineBackground(() => {
   });
 
   // ---- 右键菜单点击 ----
-  chrome.contextMenus.onClicked.addListener(async (info, tab) => {
+  menusApi.onClicked.addListener(async (info, tab) => {
     if (info.menuItemId === 'thoth-open-library') {
       const tabId = tab?.id;
       if (tabId == null) return;
@@ -407,7 +443,7 @@ export default defineBackground(() => {
     if (info.menuItemId === 'thoth-save-full') {
       try {
         if (!(await ensureContentScript(tab.id))) return;
-        const res = (await chrome.tabs.sendMessage(tab.id, {
+        const res = (await ext.tabs.sendMessage(tab.id, {
           type: 'CAPTURE_FULL',
         })) as CaptureFullResult | undefined;
         if (res) await saveCapture({ ...res, kind: 'full' });
@@ -417,7 +453,7 @@ export default defineBackground(() => {
     } else if (info.menuItemId === 'thoth-save-partial') {
       try {
         if (!(await ensureContentScript(tab.id))) return;
-        await chrome.tabs.sendMessage(tab.id, { type: 'START_PARTIAL_SELECT' });
+        await ext.tabs.sendMessage(tab.id, { type: 'START_PARTIAL_SELECT' });
       } catch (err) {
         console.error('[thothsyn] 部分保存启动失败', err);
       }
@@ -425,8 +461,22 @@ export default defineBackground(() => {
   });
 
   // ---- 运行时消息 ----
-  chrome.runtime.onMessage.addListener(
+  ext.runtime.onMessage.addListener(
     (msg: RuntimeMessage, _sender, sendResponse) => {
+      // Firefox 下被注入到普通网页的扩展页面 iframe（library.html）里
+      // browser 全局缺失、chrome.tabs 为 undefined，无法自己开标签页。
+      // 这里在顶层扩展上下文里代劳（0.1.17 修复）。
+      const openTabReq = (msg as unknown) as {
+        __thothOpenTab?: boolean;
+        url?: string;
+      };
+      if (openTabReq.__thothOpenTab && openTabReq.url) {
+        void Promise.resolve(ext.tabs.create({ url: openTabReq.url })).catch(
+          () => {},
+        );
+        sendResponse({ ok: true });
+        return true;
+      }
       if (msg?.type === 'PARTIAL_RESULT') {
         const data = msg as PartialResultMsg;
         saveCapture({
@@ -463,11 +513,11 @@ export default defineBackground(() => {
 
   // ---- 图标角标反馈 ----
   function flashBadge(tabId: number, text: string) {
-    chrome.action.setBadgeText({ tabId, text });
-    chrome.action.setBadgeBackgroundColor({
+    actionApi.setBadgeText({ tabId, text });
+    actionApi.setBadgeBackgroundColor({
       tabId,
       color: text === '✓' ? '#2e9e4f' : '#c0392b',
     });
-    setTimeout(() => chrome.action.setBadgeText({ tabId, text: '' }), 1500);
+    setTimeout(() => actionApi.setBadgeText({ tabId, text: '' }), 1500);
   }
 });

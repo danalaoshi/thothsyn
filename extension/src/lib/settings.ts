@@ -1,9 +1,10 @@
+import { ext } from './webext';
 /**
  * 共享的轻量设置与「数据版本号」。
  *
  * 为什么需要版本号：收藏库是嵌在网页里的扩展 iframe，Service Worker 的
- * chrome.runtime.sendMessage 对它投递不稳定（debug 第 2 条「点了收藏侧边栏
- * 没变」的根因）。chrome.storage.onChanged 对**所有扩展上下文**可靠，因此
+ * ext.runtime.sendMessage 对它投递不稳定（debug 第 2 条「点了收藏侧边栏
+ * 没变」的根因）。ext.storage.onChanged 对**所有扩展上下文**可靠，因此
  * 任何写入 Dexie 的地方都顺手写一个自增版本号，UI 监听它再重读数据库。
  * runtime 消息保留为冗余通道，不再作为唯一依赖。
  */
@@ -17,7 +18,7 @@ export const ICON_BLINK_KEY = 'thothIconBlink';
 
 export async function bumpRevision(): Promise<void> {
   // 加随机后缀，保证同一毫秒内连续写入也能触发 onChanged
-  await chrome.storage.local.set({
+  await ext.storage.local.set({
     [REVISION_KEY]: `${Date.now()}-${Math.random().toString(36).slice(2, 9)}`,
   });
 }
@@ -27,7 +28,7 @@ export async function getBool(
   fallback: boolean,
 ): Promise<boolean> {
   try {
-    const raw = await chrome.storage.local.get(key);
+    const raw = await ext.storage.local.get(key);
     return typeof raw[key] === 'boolean' ? (raw[key] as boolean) : fallback;
   } catch {
     return fallback;
@@ -35,7 +36,7 @@ export async function getBool(
 }
 
 export async function setBool(key: string, value: boolean): Promise<void> {
-  await chrome.storage.local.set({ [key]: value });
+  await ext.storage.local.set({ [key]: value });
 }
 
 /** 纯函数：便于函数级测试两条分支，也避免 undefined 被当成 true */

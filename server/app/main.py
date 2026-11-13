@@ -10,7 +10,9 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import RedirectResponse
 from .config import settings
-from .routers import me, captures, folders, sync, billing, admin, config, auth, mail
+from .routers import (
+    me, captures, folders, sync, billing, admin, config, auth, mail, messages, feedback,
+)
 
 app = FastAPI(title="Thothsyn v2 API", version="0.1.0")
 
@@ -31,6 +33,8 @@ app.include_router(admin.router, prefix=settings.api_prefix)
 app.include_router(config.router, prefix=settings.api_prefix)
 app.include_router(auth.router, prefix=settings.api_prefix)
 app.include_router(mail.router, prefix=settings.api_prefix)
+app.include_router(messages.router, prefix=settings.api_prefix)
+app.include_router(feedback.router, prefix=settings.api_prefix)
 
 
 @app.get("/", include_in_schema=False)

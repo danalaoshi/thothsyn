@@ -1,13 +1,14 @@
+import { ext } from './webext';
 import { KEY_OF, ZH_OF_KEY } from './i18n-keys';
 
 /**
- * 多语言（0.1.6 / debug#3）：用 Chrome 扩展标准的 _locales + chrome.i18n。
- * chrome.i18n 会按**浏览器 UI 语言**自动选最匹配的 locale，回退到
+ * 多语言（0.1.6 / debug#3）：用 WebExtension 标准的 _locales + i18n API。
+ * i18n 会按**浏览器 UI 语言**自动选最匹配的 locale，回退到
  * manifest.default_locale —— 这就是「语言跟随浏览器系统语言」，扩展不需要
  * 自己判断语言、也不需要在设置页加语言开关。
  *
  * 源码里的 UI 文案保留中文原文：运行时用 KEY_OF 反查 i18n key，
- * 再交给 chrome.i18n.getMessage() 取当前语言译文。没有 chrome 上下文时
+ * 再交给 ext.i18n.getMessage() 取当前语言译文。没有扩展上下文时
  * （函数级回归测试）退回中文原文，保证纯函数可测。
  */
 
@@ -26,8 +27,8 @@ function fill(text: string, subs: string[]): string {
 export function message(key: string, ...values: Array<string | number>): string {
   const subs = subsOf(values);
   try {
-    if (typeof chrome !== 'undefined' && chrome.i18n?.getMessage) {
-      const localized = chrome.i18n.getMessage(key, subs);
+    if (ext?.i18n?.getMessage) {
+      const localized = ext.i18n.getMessage(key, subs);
       if (localized) return localized;
     }
   } catch {
@@ -45,8 +46,8 @@ export function t(zh: string, ...values: Array<string | number>): string {
 /** 浏览器 UI 语言，例如 zh-CN / en-US */
 export function uiLanguage(): string {
   try {
-    if (typeof chrome !== 'undefined' && chrome.i18n?.getUILanguage) {
-      return chrome.i18n.getUILanguage();
+    if (ext?.i18n?.getUILanguage) {
+      return ext.i18n.getUILanguage();
     }
   } catch {
     // 忽略

@@ -342,7 +342,7 @@
     "message": "Account & Cloud Sync"
   },
   "accountSyncHint": {
-    "message": "Sign in with email to sync captures across devices. Unverified emails cannot sync."
+    "message": "Sign in to sync captures across devices. No email confirmation or payment required."
   },
   "accountLoading": {
     "message": "Reading account status…"
@@ -363,7 +363,7 @@
     "message": "Forgot password"
   },
   "signupHint": {
-    "message": "After signing up, confirm via the link in your inbox. Unverified accounts cannot sync."
+    "message": "Sign up and sign in to start syncing. If asked, confirm via the link in your inbox."
   },
   "syncMode": {
     "message": "Sync mode"
@@ -383,8 +383,26 @@
   "signOut": {
     "message": "Sign out"
   },
-  "unverifiedBlocked": {
-    "message": "Email not verified: sync is disabled. Confirm via the link in your inbox, then come back."
+  "messagesTitle": {
+    "message": "Messages"
+  },
+  "messagesHint": {
+    "message": "Messages sent from the admin panel appear here and trigger a desktop notification"
+  },
+  "messagesSignedOut": {
+    "message": "Sign in to see messages sent from the admin panel"
+  },
+  "messagesEmpty": {
+    "message": "No messages yet"
+  },
+  "messagesRefresh": {
+    "message": "Refresh"
+  },
+  "messagesClear": {
+    "message": "Clear messages"
+  },
+  "messagesFromAdmin": {
+    "message": "From admin"
   },
   "lastSync": {
     "message": "Last sync: "
@@ -448,5 +466,59 @@
   },
   "never": {
     "message": "Never"
+  },
+  "feedbackTitle": {
+    "message": "Leave feedback"
+  },
+  "feedbackHint": {
+    "message": "Up to 500 characters; leave a contact so I can follow up"
+  },
+  "feedbackContentLabel": {
+    "message": "Message"
+  },
+  "feedbackPlaceholder": {
+    "message": "Tell me about a problem, a feature you want, or anything else (max 500 characters)"
+  },
+  "feedbackContactType": {
+    "message": "Contact type"
+  },
+  "feedbackContactTypeIm": {
+    "message": "IM (WeChat / QQ / etc.)"
+  },
+  "feedbackContactLabel": {
+    "message": "Contact"
+  },
+  "feedbackSend": {
+    "message": "Send feedback"
+  },
+  "feedbackPrivacyHint": {
+    "message": "Feedback goes to the server address you configured and is visible only to the admin; no sign-in required."
+  },
+  "feedbackCount": {
+    "message": "$1 / 500 characters"
+  },
+  "feedbackImPlaceholder": {
+    "message": "WeChat ID / QQ number / Telegram, etc."
+  },
+  "feedbackEmpty": {
+    "message": "Message cannot be empty"
+  },
+  "feedbackTooLong": {
+    "message": "Message is limited to 500 characters"
+  },
+  "feedbackContactEmpty": {
+    "message": "Please provide a contact"
+  },
+  "feedbackEmailInvalid": {
+    "message": "That email address doesn't look right"
+  },
+  "feedbackSending": {
+    "message": "Sending…"
+  },
+  "feedbackDone": {
+    "message": "Feedback received, thank you! (ref #$1)"
+  },
+  "feedbackFailed": {
+    "message": "Could not send: $1"
   }
 }

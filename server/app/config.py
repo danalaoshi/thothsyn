@@ -19,8 +19,12 @@ class Settings(BaseSettings):
     supabase_url: str = "http://localhost:8000"
     supabase_anon_key: str = ""
     supabase_service_role_key: str = ""
-    # 逗号分隔的管理员邮箱；空表示首个注册用户自动成为 superuser
+    # 逗号分隔的管理员邮箱。命中名单的账号在每次鉴权时都会确保 is_superuser=true，
+    # 大小写不敏感；名单变更或 profiles 行被清空后可自愈。生产环境应显式配置。
     superuser_emails: str = ""
+    # 名单为空时的本地便利引导：把「第一个通过鉴权且库中尚无超管」的账号提为超管。
+    # 默认关闭；ENV=prod 时无论如何都强制禁用，避免公网第一个注册者拿到管理权限。
+    bootstrap_first_superuser: bool = False
     cors_origins: str = "*"
     api_prefix: str = "/api"
 
@@ -34,6 +38,15 @@ class Settings(BaseSettings):
     @property
     def superuser_email_set(self) -> set[str]:
         return {e.strip().lower() for e in self.superuser_emails.split(",") if e.strip()}
+
+    @property
+    def allow_first_user_bootstrap(self) -> bool:
+        """自动引导仅在「非生产 + 显式开启 + 未配置名单」三个条件同时成立时允许。"""
+        return (
+            self.env.strip().lower() != "prod"
+            and self.bootstrap_first_superuser
+            and not self.superuser_email_set
+        )
 
 
 settings = Settings()

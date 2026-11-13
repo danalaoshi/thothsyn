@@ -1,4 +1,4 @@
-"""同步核心测试：push/pull/both、LWW 冲突、软删传播、用户隔离、等级门禁。"""
+"""同步核心测试：push/pull/both、LWW 冲突、软删传播、用户隔离、注册即可同步。"""
 from __future__ import annotations
 import pytest
 
@@ -16,9 +16,11 @@ def cap(id_: str, updated_at: int, **kw) -> dict:
     return base
 
 
-async def test_unverified_cannot_sync(client, token_a):
+async def test_registered_user_can_sync_without_email_confirmation(client, token_a):
+    """0.1.11 起注册即可同步：profile 仍是 unverified 也不该被 403 挡住。"""
     r = await client.post("/api/sync", json={"mode": "both", "changes": []}, headers=auth(token_a))
-    assert r.status_code == 403  # unverified -> sync disabled
+    assert r.status_code == 200
+    assert r.json()["server_cursor"] == 0
 
 
 async def test_push_then_pull_roundtrip(client, token_a):

@@ -1,3 +1,4 @@
+import { ext } from '../../lib/webext';
 import './options.css';
 import { db } from '../../db/database';
 import type { Folder, FolderType } from '../../types';
@@ -21,6 +22,12 @@ import {
 } from '../../lib/settings';
 import type { AssetsChangedMsg, FoldersChangedMsg } from '../../lib/messages';
 import {
+  ANNOUNCEMENTS_KEY,
+  clearAnnouncements,
+  getAnnouncements,
+  pollAnnouncements,
+} from '../../lib/announcements';
+import {
   ensureFreshSession,
   getAutoSync,
   getMeta,
@@ -35,6 +42,7 @@ import {
   signIn,
   signOut,
   signUp,
+  submitFeedback,
   syncNow,
   type AuthSession,
   type Level,
@@ -112,8 +120,18 @@ async function render() {
     </div>
 
     <div class="card" id="card-account">
-      <h2>账号与云同步 <span class="hint">邮箱登录后，收藏可跨设备同步；未验证邮箱不允许同步</span></h2>
+      <h2>账号与云同步 <span class="hint">注册并登录后即可同步收藏，无需验证邮箱或付费</span></h2>
       <div id="account-body"><span class="hint">读取账号状态…</span></div>
+    </div>
+
+    <div class="card" id="card-messages">
+      <h2>消息 <span class="hint">后台下发的消息会在这里显示，同时弹出桌面通知</span></h2>
+      <div id="messages-body"></div>
+    </div>
+
+    <div class="card" id="card-feedback">
+      <h2>给我留言 <span class="hint">最多 500 字，留个联系方式方便我回访</span></h2>
+      <div id="feedback-body"></div>
     </div>
   `;
 
@@ -130,7 +148,9 @@ async function render() {
   wirePrefs();
   void renderAssetStats();
   wireAssetCard();
+  // renderAccount() 尾部会顺带刷新消息卡片，避免同一次渲染并发轮询两遍
   void renderAccount();
+  void renderFeedback();
   // 静态文案（标题、卡片、按钮、aria-label、placeholder）自动跟随浏览器语言
   applyI18n(app);
 }
@@ -321,7 +341,7 @@ async function renderAccount(): Promise<void> {
         <button class="btn sm ghost" data-acct="forgot">忘记密码</button>
       </div>
       <div class="acct-msg" id="acct-msg" role="status" aria-live="polite"></div>
-      <div class="hint">注册后需要到邮箱点确认链接；未验证邮箱的账号不允许同步。</div>`;
+      <div class="hint">注册并登录后即可同步；若提示需要确认邮箱，请到邮箱点确认链接。</div>`;
     wireLoggedOut();
     applyI18n(host);
     return;
@@ -334,7 +354,7 @@ async function renderAccount(): Promise<void> {
     getAutoSync(),
     getMeta(),
   ]);
-  const canSync = fresh.level !== 'unverified';
+  // 0.1.11 起注册即可同步：等级只作展示，不再禁用任何控件
   const levelTone: Record<Level, string> = {
     unverified: 'warn',
     formal: 'ok',
@@ -352,14 +372,9 @@ async function renderAccount(): Promise<void> {
         t(LEVEL_LABEL[fresh.level]),
       )}</span>
     </div>
-    ${
-      canSync
-        ? ''
-        : `<div class="acct-warn">邮箱未验证：同步已禁用。请到注册邮箱点确认链接后再回来。</div>`
-    }
     <div class="acct-grid">
       <label class="field"><span>同步模式</span>
-        <select id="acct-mode" ${canSync ? '' : 'disabled'}>
+        <select id="acct-mode">
           ${(Object.keys(MODE_LABEL) as SyncMode[])
             .map(
               (m) =>
@@ -372,13 +387,13 @@ async function renderAccount(): Promise<void> {
       </label>
       <label class="field pref-inline"><span>每日自动同步</span>
         <span class="switch-row">
-          <input type="checkbox" id="acct-auto" ${auto ? 'checked' : ''} ${canSync ? '' : 'disabled'} />
+          <input type="checkbox" id="acct-auto" ${auto ? 'checked' : ''} />
           <span class="hint">每天一次，浏览器启动后自动补跑</span>
         </span>
       </label>
     </div>
     <div class="acct-actions">
-      <button class="btn primary sm" data-acct="sync" ${canSync ? '' : 'disabled'}>立即同步</button>
+      <button class="btn primary sm" data-acct="sync">立即同步</button>
       <button class="btn sm" data-acct="manage">管理线上内容</button>
       <button class="btn sm danger" data-acct="logout">退出登录</button>
     </div>
@@ -389,6 +404,193 @@ async function renderAccount(): Promise<void> {
     <div class="acct-msg" id="acct-msg" role="status" aria-live="polite"></div>`;
 
   wireLoggedIn(fresh);
+  applyI18n(host);
+  void renderMessages();
+}
+
+/**
+ * 消息卡片（0.1.11）。后台内容是不可信输入：标题与正文一律用 textContent
+ * 落 DOM，绝不拼进 innerHTML，更不会进预览用的 sandbox iframe。
+ */
+async function renderMessages(poll = true): Promise<void> {
+  const host = app.querySelector<HTMLElement>('#messages-body');
+  if (!host) return;
+  const session = await getSession();
+  if (session && poll) {
+    try {
+      await pollAnnouncements();
+    } catch {
+      // 离线或后端没启动：仍展示本地缓存，不把错误糊到设置页
+    }
+  }
+
+  const items = await getAnnouncements();
+  if (!session) {
+    host.innerHTML = `<div class="hint">${esc(t('登录后即可查看后台发送的消息'))}</div>`;
+    return;
+  }
+  if (!items.length) {
+    host.innerHTML = `
+      <div class="hint">${esc(t('暂无消息'))}</div>
+      <div class="msg-actions">
+        <button class="btn sm" data-msg="refresh">${esc(t('刷新消息'))}</button>
+      </div>`;
+  } else {
+    host.innerHTML = `
+      <div class="msg-actions">
+        <button class="btn sm" data-msg="refresh">${esc(t('刷新消息'))}</button>
+        <button class="btn sm ghost" data-msg="clear">${esc(t('清空消息'))}</button>
+      </div>
+      <div class="msg-list"></div>`;
+    const list = host.querySelector<HTMLElement>('.msg-list')!;
+    for (const m of items) {
+      const row = document.createElement('div');
+      row.className = 'msg-item';
+      const head = document.createElement('div');
+      head.className = 'msg-head';
+      const title = document.createElement('b');
+      title.textContent = String(m.title ?? '');
+      const meta = document.createElement('span');
+      meta.className = 'hint';
+      meta.textContent = `${fmtTime(Number(m.created_at) || 0)} · ${t('来自后台')}`;
+      head.append(title, meta);
+      row.appendChild(head);
+      const text = String(m.body ?? '');
+      if (text) {
+        const p = document.createElement('p');
+        p.className = 'msg-body';
+        p.textContent = text;
+        row.appendChild(p);
+      }
+      list.appendChild(row);
+    }
+  }
+  host
+    .querySelector('[data-msg="refresh"]')
+    ?.addEventListener('click', () => void renderMessages());
+  host.querySelector('[data-msg="clear"]')?.addEventListener('click', () => {
+    void (async () => {
+      await clearAnnouncements();
+      await renderMessages(false);
+    })();
+  });
+}
+
+/**
+ * 留言窗口（0.1.12）。和上面的「消息」是反向通道：用户 → 后台数据库。
+ *
+ * 表单全是静态 HTML，任何用户输入都不进 innerHTML；状态提示（包括后端
+ * 返回的错误文案）一律用 textContent 落 DOM。不登录也能提交。
+ */
+async function renderFeedback(): Promise<void> {
+  const host = app.querySelector<HTMLElement>('#feedback-body');
+  if (!host) return;
+  const session = await getSession();
+
+  host.innerHTML = `
+    <div class="fb-form">
+      <label class="field"><span>留言内容</span>
+        <textarea id="fb-content" rows="5" maxlength="500" spellcheck="true"
+                  placeholder="说说遇到的问题、想要的功能，或者任何建议（最多 500 字）"></textarea>
+      </label>
+      <div class="fb-count hint" id="fb-count" role="status"></div>
+      <div class="fb-grid">
+        <label class="field"><span>联系方式类型</span>
+          <select id="fb-type">
+            <option value="email">邮箱</option>
+            <option value="im">IM（微信 / QQ 等）</option>
+          </select>
+        </label>
+        <label class="field"><span>联系方式</span>
+          <input id="fb-contact" type="text" maxlength="200" spellcheck="false"
+                 placeholder="you@example.com" />
+        </label>
+      </div>
+      <div class="fb-actions">
+        <button class="btn primary sm" id="fb-send">发送留言</button>
+        <span class="hint">留言会发送到你设置的服务器地址，只有后台管理员能看到；不登录也可以留。</span>
+      </div>
+      <div class="acct-msg" id="fb-msg" role="status" aria-live="polite"></div>
+    </div>`;
+
+  const content = host.querySelector<HTMLTextAreaElement>('#fb-content')!;
+  const contact = host.querySelector<HTMLInputElement>('#fb-contact')!;
+  const kindSel = host.querySelector<HTMLSelectElement>('#fb-type')!;
+  const count = host.querySelector<HTMLElement>('#fb-count')!;
+  const btn = host.querySelector<HTMLButtonElement>('#fb-send')!;
+  const msg = host.querySelector<HTMLElement>('#fb-msg')!;
+
+  const say = (text: string, kind: 'ok' | 'error' | 'info' = 'info'): void => {
+    msg.textContent = text;
+    msg.dataset.kind = kind;
+  };
+  const updateCount = (): void => {
+    // Array.from 按 Unicode 码点计数，与服务端 Python len() 的「500 字」口径一致；
+    // textarea 的 maxlength 是 UTF-16 码元上限（emoji 算 2），只会更严格，不会超限。
+    count.textContent = t('已输入 $1 / 500', Array.from(content.value).length);
+  };
+  const placeholderFor = (): string =>
+    kindSel.value === 'email'
+      ? 'you@example.com'
+      : t('微信号 / QQ 号 / Telegram 等');
+
+  content.addEventListener('input', updateCount);
+  kindSel.addEventListener('change', () => {
+    contact.placeholder = placeholderFor();
+  });
+  updateCount();
+
+  // 已登录且默认选的是邮箱：预填账号邮箱，用户仍可改成别的联系方式
+  if (session?.email) contact.value = session.email;
+
+  btn.addEventListener('click', () => {
+    void (async () => {
+      const text = content.value.trim();
+      const who = contact.value.trim();
+      if (!text) {
+        say(t('留言不能为空'), 'error');
+        return;
+      }
+      if (Array.from(text).length > 500) {
+        say(t('留言最多 500 字'), 'error');
+        return;
+      }
+      if (!who) {
+        say(t('请填写联系方式'), 'error');
+        return;
+      }
+      if (kindSel.value === 'email' && !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(who)) {
+        say(t('邮箱格式看起来不对'), 'error');
+        return;
+      }
+
+      btn.disabled = true;
+      say(t('正在发送…'));
+      try {
+        let version = '';
+        try {
+          version = ext.runtime.getManifest().version || '';
+        } catch {
+          // 非扩展上下文（函数级回归测试）：留空即可
+        }
+        const out = await submitFeedback({
+          content: text,
+          contact_type: kindSel.value === 'im' ? 'im' : 'email',
+          contact: who,
+          client_version: version,
+        });
+        content.value = '';
+        updateCount();
+        say(t('留言已收到，谢谢你的反馈（编号 $1）', out.id), 'ok');
+      } catch (e) {
+        say(t('发送失败：$1', (e as Error).message), 'error');
+      } finally {
+        btn.disabled = false;
+      }
+    })();
+  });
+
+  // 本卡片是异步插入的，render() 末尾那次 applyI18n(app) 覆盖不到
   applyI18n(host);
 }
 
@@ -504,7 +706,7 @@ function wireLoggedIn(session: AuthSession): void {
       const url =
         `${base}/manage#access_token=${encodeURIComponent(current.accessToken)}` +
         `&refresh_token=${encodeURIComponent(current.refreshToken)}`;
-      await chrome.tabs.create({ url });
+      await ext.tabs.create({ url });
     })();
   });
 
@@ -653,16 +855,16 @@ function inlineDelete(row: HTMLElement, f: Folder, type: FolderType) {
 function notifyFoldersChanged(): void {
   void bumpRevision().catch(() => {});
   const msg: FoldersChangedMsg = { type: 'FOLDERS_CHANGED' };
-  void Promise.resolve(chrome.runtime.sendMessage(msg)).catch(() => {});
+  void Promise.resolve(ext.runtime.sendMessage(msg)).catch(() => {});
 }
 
 function notifyAssetsChanged(): void {
   const msg: AssetsChangedMsg = { type: 'ASSETS_CHANGED' };
-  void Promise.resolve(chrome.runtime.sendMessage(msg)).catch(() => {});
+  void Promise.resolve(ext.runtime.sendMessage(msg)).catch(() => {});
 }
 
 let assetStatsTimer = 0;
-chrome.runtime.onMessage.addListener((msg: unknown) => {
+ext.runtime.onMessage.addListener((msg: unknown) => {
   const m = msg as { type?: string } | undefined;
   if (m?.type === 'ASSETS_CHANGED') {
     window.clearTimeout(assetStatsTimer);
@@ -671,10 +873,12 @@ chrome.runtime.onMessage.addListener((msg: unknown) => {
 });
 
 // 偏好开关可能在别的上下文被改，读回展示，保证「当前生效」不撒谎
-chrome.storage.onChanged.addListener((changes, area) => {
+ext.storage.onChanged.addListener((changes, area) => {
   if (area !== 'local') return;
   if (changes[DELETE_CONFIRM_KEY] || changes[ICON_BLINK_KEY])
     void showPrefStates();
+  // 后台轮询到新消息 → 只重绘缓存，不再次发起轮询，避免循环
+  if (changes[ANNOUNCEMENTS_KEY]) void renderMessages(false);
 });
 
 let syncTimer = 0;
@@ -700,9 +904,9 @@ async function finishAndClose(): Promise<void> {
   showSyncStatus(t('已同步 · 正在关闭'));
   await new Promise((r) => setTimeout(r, 320));
   try {
-    const tab = await chrome.tabs.getCurrent();
+    const tab = await ext.tabs.getCurrent();
     if (tab?.id != null) {
-      await chrome.tabs.remove(tab.id);
+      await ext.tabs.remove(tab.id);
       return;
     }
   } catch {

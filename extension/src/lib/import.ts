@@ -1,3 +1,4 @@
+import { ext } from './webext';
 import { db } from '../db/database';
 import type { Capture, FolderType } from '../types';
 import { addCaptures, addFolder } from './repo';
@@ -20,7 +21,7 @@ async function finishImport(
   // 导入可能新建文件夹；数据版本号是主通道，runtime 消息是冗余
   await bumpRevision();
   void Promise.resolve(
-    chrome.runtime.sendMessage({ type: 'FOLDERS_CHANGED' } satisfies FoldersChangedMsg),
+    ext.runtime.sendMessage({ type: 'FOLDERS_CHANGED' } satisfies FoldersChangedMsg),
   ).catch(() => {});
   return toAdd.length;
 }
@@ -47,7 +48,7 @@ async function ensureFolder(
 
 /** 从 Chrome 书签栏导入 */
 export async function importFromBookmarks(): Promise<number> {
-  const tree = await chrome.bookmarks.getTree();
+  const tree = await ext.bookmarks.getTree();
   const cache = new Map<string, string>();
   const toAdd: Omit<Capture, 'updatedAt'>[] = [];
   const now = Date.now();

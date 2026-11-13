@@ -342,7 +342,7 @@
     "message": "账号与云同步"
   },
   "accountSyncHint": {
-    "message": "邮箱登录后，收藏可跨设备同步；未验证邮箱不允许同步"
+    "message": "注册并登录后即可同步收藏，无需验证邮箱或付费"
   },
   "accountLoading": {
     "message": "读取账号状态…"
@@ -363,7 +363,7 @@
     "message": "忘记密码"
   },
   "signupHint": {
-    "message": "注册后需要到邮箱点确认链接；未验证邮箱的账号不允许同步。"
+    "message": "注册并登录后即可同步；若提示需要确认邮箱，请到邮箱点确认链接。"
   },
   "syncMode": {
     "message": "同步模式"
@@ -383,8 +383,26 @@
   "signOut": {
     "message": "退出登录"
   },
-  "unverifiedBlocked": {
-    "message": "邮箱未验证：同步已禁用。请到注册邮箱点确认链接后再回来。"
+  "messagesTitle": {
+    "message": "消息"
+  },
+  "messagesHint": {
+    "message": "后台下发的消息会在这里显示，同时弹出桌面通知"
+  },
+  "messagesSignedOut": {
+    "message": "登录后即可查看后台发送的消息"
+  },
+  "messagesEmpty": {
+    "message": "暂无消息"
+  },
+  "messagesRefresh": {
+    "message": "刷新消息"
+  },
+  "messagesClear": {
+    "message": "清空消息"
+  },
+  "messagesFromAdmin": {
+    "message": "来自后台"
   },
   "lastSync": {
     "message": "上次同步："
@@ -448,5 +466,59 @@
   },
   "never": {
     "message": "从未"
+  },
+  "feedbackTitle": {
+    "message": "给我留言"
+  },
+  "feedbackHint": {
+    "message": "最多 500 字，留个联系方式方便我回访"
+  },
+  "feedbackContentLabel": {
+    "message": "留言内容"
+  },
+  "feedbackPlaceholder": {
+    "message": "说说遇到的问题、想要的功能，或者任何建议（最多 500 字）"
+  },
+  "feedbackContactType": {
+    "message": "联系方式类型"
+  },
+  "feedbackContactTypeIm": {
+    "message": "IM（微信 / QQ 等）"
+  },
+  "feedbackContactLabel": {
+    "message": "联系方式"
+  },
+  "feedbackSend": {
+    "message": "发送留言"
+  },
+  "feedbackPrivacyHint": {
+    "message": "留言会发送到你设置的服务器地址，只有后台管理员能看到；不登录也可以留。"
+  },
+  "feedbackCount": {
+    "message": "已输入 $1 / 500"
+  },
+  "feedbackImPlaceholder": {
+    "message": "微信号 / QQ 号 / Telegram 等"
+  },
+  "feedbackEmpty": {
+    "message": "留言不能为空"
+  },
+  "feedbackTooLong": {
+    "message": "留言最多 500 字"
+  },
+  "feedbackContactEmpty": {
+    "message": "请填写联系方式"
+  },
+  "feedbackEmailInvalid": {
+    "message": "邮箱格式看起来不对"
+  },
+  "feedbackSending": {
+    "message": "正在发送…"
+  },
+  "feedbackDone": {
+    "message": "留言已收到，谢谢你的反馈（编号 $1）"
+  },
+  "feedbackFailed": {
+    "message": "发送失败：$1"
   }
 }

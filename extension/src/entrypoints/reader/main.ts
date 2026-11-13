@@ -1,3 +1,4 @@
+import { ext } from '../../lib/webext';
 import './reader.css';
 import { db } from '../../db/database';
 import { offlineHtmlFor } from '../../lib/offline';
@@ -32,7 +33,7 @@ async function init() {
 
   if (cap.url) {
     originBtn.addEventListener('click', () => {
-      void chrome.tabs.create({ url: cap.url });
+      void ext.tabs.create({ url: cap.url });
     });
   } else {
     originBtn.disabled = true;
