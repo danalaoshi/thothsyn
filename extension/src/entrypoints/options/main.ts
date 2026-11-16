@@ -326,7 +326,7 @@ async function renderAccount(): Promise<void> {
       <div class="acct-form">
         <label class="field"><span>服务器地址</span>
           <input id="acct-server" type="text" spellcheck="false"
-                 value="${esc(serverUrl)}" placeholder="http://127.0.0.1:3000" />
+                 value="${esc(serverUrl)}" placeholder="http://137.175.107.92:5200" />
         </label>
         <label class="field"><span>邮箱</span>
           <input id="acct-email" type="email" autocomplete="username" spellcheck="false" placeholder="you@example.com" />

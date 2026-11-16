@@ -1,7 +1,7 @@
 {
   "name": "thothsyn-extension",
   "private": true,
-  "version": "0.1.17",
+  "version": "0.1.18",
   "type": "module",
   "description": "Thothsyn — 本地优先的超级书签（Chrome / Firefox 版）",
   "scripts": {

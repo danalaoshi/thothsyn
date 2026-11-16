@@ -24,7 +24,7 @@ export default defineConfig({
     name: '__MSG_extName__',
     description: '__MSG_extDescription__',
     default_locale: 'en',
-    version: '0.1.17',
+    version: '0.1.18',
     icons: ICONS,
     permissions: [
       'storage',

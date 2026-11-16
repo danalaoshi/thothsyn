@@ -2,54 +2,82 @@
 
 Thothsyn = Thoth + Synapse，一个本地优先的「超级书签」。它把网页连同图片、样式一起存进本机，断网也能打开；收藏库是网页左侧一条会自动隐藏的侧栏，不需要单独开窗口。
 
+> Thothsyn = Thoth + Synapse is a local-first "super bookmark". It saves web pages — together with their images and styles — into your machine so they open even offline. The library lives as an auto-hiding drawer on the left edge of the page; no separate window needed.
+
 内容默认只存在本机，不登录也能用。登录后可以选择把收藏同步到自己的云端，让多台设备保持一致；同步功能注册即可使用，不需要验证邮箱或付费。这份说明随每次版本升级更新，收藏库里的 `readme` 条目会在升级后自动换成最新版。
 
-## 使用说明
+> Content stays on your machine by default — the extension works without an account. After signing in you can optionally sync your library to your own cloud so every device stays in step. Sync is free for any registered user: no email verification, no paywall. This guide is updated with every release, and the `readme` entry inside the library refreshes automatically after an upgrade.
 
-### 安装
+## 使用说明 / User Guide
+
+### 安装 / Installation
 
 - Chrome / Edge 等 Chromium 浏览器：在 `chrome://extensions` 打开「开发者模式」，加载已解压的扩展目录 `extension/.output/chrome-mv3`；工具栏出现图标即可使用。
+  Chrome / Edge and other Chromium browsers: enable "Developer mode" in `chrome://extensions`, then load the unpacked directory `extension/.output/chrome-mv3`. Once the toolbar icon appears, you are ready to go.
 - Firefox：在 `about:debugging` 打开「此 Firefox」→「临时加载附加组件」，选 `extension/.output/firefox-mv3/manifest.json`；临时安装会在重启浏览器后失效。
+  Firefox: open `about:debugging` → "This Firefox" → "Load Temporary Add-on", and pick `extension/.output/firefox-mv3/manifest.json`. Note that a temporary install is removed when the browser restarts.
 - 两个版本功能一致，数据各自保存在本机、互不共享。改过说明或代码后要重新构建并重载扩展。
+  Both builds have the same features; data is kept per-browser on your machine and never shared between them. After editing this guide or the code, rebuild and reload the extension.
 
-### 保存网页
+### 保存网页 / Saving pages
 
 - **单击图标**：保存当前整页，图标角标以 ✓ / ! 提示结果。
+  **Click the toolbar icon** to save the whole page; a ✓ / ! badge on the icon shows the result.
 - **右键图标**：可选「保存整页」「部分保存」「打开收藏库」。
+  **Right-click the icon** to choose "Save full page", "Save partial", or "Open library".
 - **部分保存**：单击选中单个元素（再点取消），或按住左键拖拽框选多个；按 `Esc` 退出确认。选中的片段会合成一条完整的 HTML 收藏。
+  **Partial save**: click to pick a single element (click again to cancel), or drag a box to select several; press `Esc` to quit picking. The selected fragments are merged into one complete HTML capture.
 
-### 查看与预览
+### 查看与预览 / Reading & preview
 
 - 侧栏收起时只在网页左边缘留一条细触发条，鼠标靠近即滑出，移开自动收起；点「固定」可常驻。宽度可以直接拖动。
+  When collapsed the library leaves a thin trigger strip on the left edge of the page; it slides out on hover and hides again when the pointer leaves. Click the pin to keep it open. Drag its edge to resize.
 - 鼠标悬停标题，右侧弹出预览窗，显示本机保存的离线快照，**不会联网**。
+  Hover a title to pop up a preview on the right showing the offline snapshot saved on your machine — it **never touches the network**.
 - **点击标题**：在新标签页打开原网页；`readme` 这条例外，打开本地说明页。
+  **Click a title** to open the original page in a new tab; the `readme` entry is the exception — it opens this local guide.
 
-### 整理与查找
+### 整理与查找 / Organizing & searching
 
 - 左侧筛选树分两类：**业务文件夹**（一条收藏只归一处，拖入即移动）和**标签**（可挂多个，拖入即追加）。删除文件夹不会删掉其中的收藏。
+  The filter tree on the left has two kinds of nodes: **folders** (each capture lives in exactly one; dropping moves it) and **tags** (a capture may carry many; dropping adds one). Deleting a folder never deletes its captures.
 - 顶部搜索框按标题、网址、正文过滤，按 `/` 可快速聚焦。
+  The search box on top filters by title, URL and body text; press `/` to focus it quickly.
 - 设置页可导入浏览器书签、查看和清空离线资源。
+  The settings page can import browser bookmarks and lets you inspect and clear offline assets.
 
-### 云同步（可选）
+### 云同步（可选）/ Cloud sync (optional)
 
 - 设置页 →「账号与云同步」：填服务器地址、邮箱、密码；**注册并登录即可同步**，不要求验证邮箱，也没有付费门槛。
+  Settings → "Account & cloud sync": fill in the server address, email and password. **Sign up and sign in — that's all it takes to sync**; no email verification, no paywall.
 - 同步模式三选一：双向 / 仅上传 / 仅下载；可开「每日自动同步」，也可随时点「立即同步」。
+  Choose one of three sync modes: two-way / upload only / download only. Turn on "daily auto sync", or hit "Sync now" any time.
 - 整页收藏只上传链接，部分收藏上传选中的 DOM 片段，本地快照始终留在本机；删除同样会同步到其它设备。
+  Full-page captures upload only the link, partial captures upload the selected DOM fragment, and the local snapshot always stays on your machine. Deletions propagate to your other devices too.
 - 「管理线上内容」会带着登录态打开网页版管理页，可管理云端收藏与账号。
+  "Manage online content" opens the web admin panel with your session, where you can manage cloud captures and your account.
 - 自建服务端时，后台消息和用户留言只对管理员可见；管理员邮箱在服务端的 `SUPERUSER_EMAILS` 里指定。
+  When you self-host the backend, admin messages and user feedback are visible to admins only; admin emails are listed in the server's `SUPERUSER_EMAILS`.
 
-### 后台消息
+### 后台消息 / Admin messages
 
 - 后台可以向全体用户或指定账号发送站内消息，扩展每小时自动收取一次。
+  The backend can send in-app messages to all users or a specific account; the extension polls once an hour automatically.
 - 新消息会弹桌面通知；设置页 →「消息」可以查看历史、手动刷新或清空。
+  New messages raise a desktop notification; Settings → "Messages" shows history and lets you refresh manually or clear everything.
 - 消息按纯文本显示，不会加载外部内容，也不会碰你保存的网页快照。
+  Messages are rendered as plain text — no external content is loaded, and your saved snapshots are never touched.
 
-### 给我留言
+### 给我留言 / Feedback
 
 - 设置页 →「给我留言」：写下问题、建议或想要的功能，**最多 500 字**。
+  Settings → "Leave feedback": tell me about bugs, ideas or features you want, **up to 500 characters**.
 - 需要留一个联系方式，可选**邮箱**或 **IM**（微信、QQ 等），方便我回访；已登录时会自动填好账号邮箱，也可以改成别的。
+  A contact is required — **email** or **IM** (WeChat, QQ, …) — so I can get back to you. When signed in your account email is pre-filled; change it if you prefer.
 - 不登录也能留言。留言只发送到你设置的服务器地址，只有后台管理员能看到；本地收藏和快照不会上传。
+  Feedback works without signing in. It is sent only to the server address you configured and is visible to the admin only; local captures and snapshots are never uploaded.
 
-### 小提示
+### 小提示 / Tips
 
 - 预览跑在安全沙箱里，只显示保存下来的静态内容；依赖脚本动态渲染的页面，观感可能与在线版不同。
+  The preview runs in a security sandbox and only shows the saved static content; pages that rely on scripts to render may look different from their live versions.

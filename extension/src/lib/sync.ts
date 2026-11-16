@@ -28,8 +28,8 @@ import {
 import { README_ID } from './readme';
 import { bumpRevision } from './settings';
 
-/** 默认服务器地址：本地 FastAPI（管理页与 API 同源，见 server/README.md） */
-export const DEFAULT_SERVER_URL = 'http://127.0.0.1:3000';
+/** 默认服务器地址：托管 FastAPI（管理页与 API 同源，见根 README） */
+export const DEFAULT_SERVER_URL = 'http://137.175.107.92:5200';
 
 export const SERVER_URL_KEY = 'thothServerUrl';
 export const AUTH_KEY = 'thothAuth';

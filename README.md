@@ -22,9 +22,9 @@
 - **扩展 Extension**：Chrome / Firefox / Edge（Manifest V3），数据存本地 IndexedDB
 - **后端 Backend**：FastAPI + 自托管 Supabase（GoTrue 鉴权 + Postgres）
 
-扩展默认连接 `http://127.0.0.1:3000`，可在扩展「设置」里改成你自己的服务器地址。
+扩展默认连接 `http://137.175.107.92:5200`（官方演示后端），可在扩展「设置」里改成你自己的服务器地址。
 
-The extension defaults to `http://127.0.0.1:3000`; change it in the extension **Settings** to point at your own server.
+The extension defaults to `http://137.175.107.92:5200` (the official demo backend); change it in the extension **Settings** to point at your own server.
 
 ---
 
@@ -38,9 +38,9 @@ Download the package for your browser from the [Releases](../../releases) page:
 
 | 浏览器 Browser | 文件 File | 安装方式 How to install |
 |---|---|---|
-| Chrome | `thothsyn-extension-0.1.17-chrome.zip` | 解压 → 打开 `chrome://extensions` → 开启「开发者模式」→ 「加载已解压的扩展程序」→ 选择解压目录 |
-| Edge | `thothsyn-extension-0.1.17-edge.zip` | 解压 → 打开 `edge://extensions` → 开启「开发人员模式」→ 「加载解压缩的扩展」→ 选择解压目录 |
-| Firefox | `thothsyn-extension-0.1.17-firefox.xpi` | 打开 `about:addons` → 右上角齿轮 → **Install Add-on From File…** → 选择 `.xpi`（开发者版/ESR 需先关签名强制，见下） |
+| Chrome | `thothsyn-extension-0.1.18-chrome.zip` | 解压 → 打开 `chrome://extensions` → 开启「开发者模式」→ 「加载已解压的扩展程序」→ 选择解压目录 |
+| Edge | `thothsyn-extension-0.1.18-edge.zip` | 解压 → 打开 `edge://extensions` → 开启「开发人员模式」→ 「加载解压缩的扩展」→ 选择解压目录 |
+| Firefox | `thothsyn-extension-0.1.18-firefox.xpi` | 打开 `about:addons` → 右上角齿轮 → **Install Add-on From File…** → 选择 `.xpi`（开发者版/ESR 需先关签名强制，见下） |
 
 > **Firefox 说明**：普通正式版（Release）强制要求扩展签名，未签名的 `.xpi` 无法直接安装。请使用 Firefox **开发者版（Developer Edition）/ ESR / 未品牌版（Unbranded）**，在 `about:config` 中将 `xpinstall.signatures.required` 设为 `false`，再安装 `.xpi`。
 >
@@ -54,7 +54,7 @@ The backend needs Docker (Supabase stack) + Python 3.14 (uv) + Node 18+ (for the
 
 ```bash
 # 1. 拉起 Supabase 本地栈（Kong 54321 / Postgres 54322 / Studio 54323 / Mailpit 54324）
-cd server/infra/supabase
+cd infra/supabase/supabase
 supabase start
 
 # 2. 配置环境变量
@@ -77,9 +77,9 @@ uv run uvicorn app.main:app --host 0.0.0.0 --port 3000
 
 管理页地址：`http://<你的服务器IP>:3000/manage`
 
-**托管后端（不想自己搭 Supabase 时）**：用 supabase.com 免费项目 + Render / Railway / Fly 免费层即可，详见 `server/README.md` 第 8 节。部署后会得到一个 `https://...` 地址；把扩展「设置 → 服务器地址」填成它即可（默认值仍是 `http://127.0.0.1:3000`）。
+**托管后端（不想自己搭 Supabase 时）**：用 supabase.com 免费项目 + Render / Railway / Fly 免费层即可，详见 `server/README.md` 第 8 节。部署后会得到一个 `https://...` 地址；把扩展「设置 → 服务器地址」填成它即可（默认值已指向官方演示后端 `http://137.175.107.92:5200`）。
 
-**Hosted backend (if you don't want to run Supabase yourself)**: use a supabase.com free project + Render / Railway / Fly free tier — see `server/README.md` §8. You'll get a `https://...` URL; paste it into the extension **Settings → Server URL** (the default is still `http://127.0.0.1:3000`).
+**Hosted backend (if you don't want to run Supabase yourself)**: use a supabase.com free project + Render / Railway / Fly free tier — see `server/README.md` §8. You'll get a `https://...` URL; paste it into the extension **Settings → Server URL** (the default already points at the official demo backend `http://137.175.107.92:5200`).
 
 > 公网部署前请务必：改默认数据库口令、配置真实 SMTP、关闭 `/api/mail/*`、设置 CORS 白名单、做好数据备份。详见 `server/README.md`。
 >
@@ -92,7 +92,7 @@ uv run uvicorn app.main:app --host 0.0.0.0 --port 3000
 1. **装好扩展**，打开任意网页：
    - 工具栏单击 = 收藏整页
    - 右键 = 整页 / 框选局部 / 打开收藏库
-2. **连后端**：扩展「设置」→「服务器地址」填你的后端地址（如 `http://<服务器IP>:3000`），默认是 `http://127.0.0.1:3000`。
+2. **连后端**：扩展「设置」→「服务器地址」填你的后端地址（如 `http://<服务器IP>:3000`），默认是 `http://137.175.107.92:5200`。
 3. **注册账号**：扩展「设置」→ 注册 / 登录（走后端 GoTrue 鉴权）。
 4. **云同步**：注册即可同步，无需付费。设置里可开启「每日自动同步」。
 5. **留言**：设置页「给我留言」可匿名给开发者留言（≤500 字，留联系方式便于回访）。
@@ -102,7 +102,7 @@ uv run uvicorn app.main:app --host 0.0.0.0 --port 3000
 1. **Install the extension**, then open any web page:
    - Toolbar click = clip the whole page
    - Right-click = full page / partial selection / open library
-2. **Connect to backend**: Extension **Settings** → **Server URL** → enter your backend address (e.g. `http://<server-ip>:3000`); default is `http://127.0.0.1:3000`.
+2. **Connect to backend**: Extension **Settings** → **Server URL** → enter your backend address (e.g. `http://<server-ip>:3000`); default is `http://137.175.107.92:5200`.
 3. **Sign up**: Extension **Settings** → register / log in (via backend GoTrue).
 4. **Sync**: Any registered user can sync — no payment needed. Enable "daily auto-sync" in settings.
 5. **Feedback**: The "Leave feedback" panel in Settings sends a message to the developer (≤500 chars; contact info required for follow-up).
@@ -115,8 +115,8 @@ uv run uvicorn app.main:app --host 0.0.0.0 --port 3000
 # 扩展（需 Node 18+）
 cd extension
 npm install
-npm run zip            # Chrome / Edge → .output/thothsyn-extension-0.1.17-chrome.zip
-npm run zip:firefox    # Firefox → .output/thothsyn-extension-0.1.17-firefox.zip（已含 --mv3）
+npm run zip            # Chrome / Edge → .output/thothsyn-extension-0.1.18-chrome.zip
+npm run zip:firefox    # Firefox → .output/thothsyn-extension-0.1.18-firefox.zip（已含 --mv3）
 ```
 
 > Edge 与 Chrome 同为 Chromium Manifest V3，使用同一个打包产物即可。
