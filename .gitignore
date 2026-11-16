@@ -11,6 +11,7 @@ e2e/artifacts/
 .env
 .env.*
 !.env.example
+!server/.env.prod.example
 .DS_Store
 .idea/
 
